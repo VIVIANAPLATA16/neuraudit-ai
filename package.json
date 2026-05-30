@@ -11,6 +11,8 @@
   },
   "dependencies": {
     "@azure/openai": "^2.0.0",
+    "@elastic/elasticsearch": "^9.4.2",
+    "dotenv": "^17.4.2",
     "framer-motion": "^12.38.0",
     "lucide-react": "^1.14.0",
     "mammoth": "^1.12.0",
