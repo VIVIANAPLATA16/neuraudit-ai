@@ -5,7 +5,7 @@ import {
   detectContractConfidence,
 } from "@/lib/contractConfidence";
 
-export const dynamic = "force-static";
+
 
 type Urgency = "INMEDIATA" | "ALTA" | "MEDIA" | "BAJA";
 type RiskBand = "ALTO" | "MEDIO" | "BAJO";
