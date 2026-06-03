@@ -127,7 +127,7 @@ export async function POST(req: Request) {
     }
 
     const llm = new ChatGoogleGenerativeAI({
-      model: "gemini-2.0-flash",
+      model: "gemini-2.0-flash-lite",
       apiKey,
       temperature: 0.1,
     });
@@ -198,7 +198,7 @@ FORMATO DE RESPUESTA:
     return NextResponse.json({
       response,
       steps,
-      model: "gemini-2.0-flash",
+      model: "gemini-2.0-flash-lite",
       tools_used: steps.length,
       timestamp: new Date().toISOString(),
     });
