@@ -2,7 +2,7 @@ export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 import { ChatGoogleGenerativeAI } from "@langchain/google-genai";
 import { tool } from "@langchain/core/tools";
-import { createReactAgent } from "langchain/agents";
+import { createReactAgent } from "@langchain/langgraph/prebuilt";
 import { z } from "zod";
 
 // HERRAMIENTA 1: Buscar contratos en 13 fuentes
