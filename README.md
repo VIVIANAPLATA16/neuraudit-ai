@@ -25,7 +25,7 @@ NeurAudit AI is an intelligent agent that analyzes public contracts from Colombi
 4. Run: npm run dev
 
 ## Environment Variables needed in .env.local
-- ANTHROPIC_API_KEY
+- 
 - GOOGLE_CLOUD_PROJECT
 - ELASTIC_API_KEY
 
