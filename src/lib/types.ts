@@ -155,6 +155,30 @@ export interface SourcesData {
   total: number
 }
 
+export interface ElasticContractHit {
+  entidad: string
+  contratista: string
+  objeto: string
+  valor: number
+  modalidad: string
+  fechaFirma: string | null
+  estado: string
+  departamento: string
+  score: number
+}
+
+export interface ElasticInsights {
+  status: "ok" | "skipped" | "error"
+  index: string
+  query: string
+  totalHits: number
+  durationMs: number
+  message?: string
+  topContratos: ElasticContractHit[]
+  alertas: string[]
+  valorTotalIndexado: number
+}
+
 export interface InvestigationMeta {
   cached?: boolean
   cacheTtlMs?: number
@@ -177,6 +201,7 @@ export interface SearchResult {
   meta?: InvestigationMeta
   riesgo: RiskData
   interpretacion?: InterpretacionAnalisis
+  elasticInsights?: ElasticInsights
   analytics?: Record<string, unknown>
   analisisIA?: AnalystAnalysis
   conclusionIA?: string

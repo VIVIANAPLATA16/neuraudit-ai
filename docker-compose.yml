@@ -8,11 +8,16 @@ services:
     env_file:
       - .env.local
     environment:
+      - PORT=3000
       - NEURAUDIT_GEMINI_MODEL=${NEURAUDIT_GEMINI_MODEL:-gemini-2.5-flash}
       - NEURAUDIT_ADK_ANALYZE_URL=http://adk-analyze:8001/analyze
       - NEURAUDIT_CACHE_TTL_MS=${NEURAUDIT_CACHE_TTL_MS:-1800000}
       - NEURAUDIT_FETCH_CONCURRENCY=${NEURAUDIT_FETCH_CONCURRENCY:-4}
       - NEXT_PUBLIC_APP_URL=http://localhost:3000
+      - GEMINI_API_KEY=${GEMINI_API_KEY:-}
+      - GOOGLE_API_KEY=${GOOGLE_API_KEY:-}
+      - ELASTIC_ENDPOINT=${ELASTIC_ENDPOINT:-}
+      - ELASTIC_API_KEY=${ELASTIC_API_KEY:-}
     depends_on:
       adk-analyze:
         condition: service_healthy

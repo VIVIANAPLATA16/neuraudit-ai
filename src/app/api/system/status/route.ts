@@ -3,6 +3,7 @@ import { NextResponse } from "next/server"
 import { getGeminiApiKey, NEURAUDIT_GEMINI_MODEL } from "@/lib/gemini-config"
 import { getADKHealth, type ADKHealthInfo } from "@/lib/adk-client"
 import { getCacheStats } from "@/lib/investigation-cache"
+import { isElasticConfigured } from "@/lib/elastic-search"
 
 export async function GET() {
   const geminiKey = !!getGeminiApiKey()
@@ -40,6 +41,11 @@ export async function GET() {
     apis: {
       search: searchOk ? "ok" : "unknown",
       datosGov: "ok",
+    },
+    elastic: {
+      configured: isElasticConfigured(),
+      index: "secop-contratos",
+      endpoint: process.env.ELASTIC_ENDPOINT ? "set" : "missing",
     },
     mcp: { status: "configured" },
     cache: getCacheStats(),

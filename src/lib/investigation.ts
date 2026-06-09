@@ -7,6 +7,11 @@ import { buildScoreExplainability } from "./score-explainability"
 import type { InvestigationMeta } from "./types"
 import { normalizeSearchTerm, whereFromFields } from "./search-normalize"
 import { getFetchConcurrency, runWithConcurrency } from "./fetch-pool"
+import {
+  searchElasticSecop,
+  elasticInsightsToHallazgos,
+  buildElasticTrace,
+} from "./elastic-search"
 
 interface SourceConfig {
   id: string
@@ -137,10 +142,13 @@ export async function runInvestigation(query: string) {
     return fetchPaginatedSource(cfg.id, cfg.name, cfg.dataset, cfg.baseUrl, whereClause)
   })
 
-  const results = await runWithConcurrency(tasks, concurrency)
+  const [results, elasticInsights] = await Promise.all([
+    runWithConcurrency(tasks, concurrency),
+    searchElasticSecop(query, variants),
+  ])
 
   const byId = Object.fromEntries(SOURCE_CONFIGS.map((cfg, i) => [cfg.id, results[i]]))
-  const fuentesTrace = results.map((r) => r.trace)
+  const fuentesTrace = [...results.map((r) => r.trace), buildElasticTrace(elasticInsights)]
 
   const secopII = byId.secopII.data
   const secopI = byId.secopI.data
@@ -192,7 +200,7 @@ export async function runInvestigation(query: string) {
     regaliasSGR: sgr.slice(0, 10),
   }
 
-  const interpretacion = buildInterpretacion({
+  let interpretacion = buildInterpretacion({
     query,
     riesgo,
     fuentes: payload.fuentes,
@@ -201,9 +209,34 @@ export async function runInvestigation(query: string) {
     timestamp: payload.timestamp,
   })
 
+  if (elasticInsights.status === "ok" && elasticInsights.totalHits > 0) {
+    const elasticHallazgos = elasticInsightsToHallazgos(elasticInsights)
+    interpretacion = {
+      ...interpretacion,
+      hallazgos: [...elasticHallazgos, ...interpretacion.hallazgos],
+      trazabilidad: [
+        ...interpretacion.trazabilidad,
+        `Elasticsearch (${elasticInsights.index}): ${elasticInsights.totalHits} coincidencias semánticas en ${elasticInsights.durationMs}ms`,
+      ],
+    }
+  } else if (elasticInsights.status === "error") {
+    interpretacion = {
+      ...interpretacion,
+      trazabilidad: [
+        ...interpretacion.trazabilidad,
+        `Elasticsearch: no disponible (${elasticInsights.message || "error de conexión"}). Investigación completada con datos.gov.co.`,
+      ],
+    }
+  }
+
   return {
     ...payload,
+    elasticInsights,
     interpretacion,
-    analytics: buildInvestigationAnalytics({ ...payload, interpretacion }) as unknown as Record<string, unknown>,
+    analytics: buildInvestigationAnalytics({
+      ...payload,
+      elasticInsights,
+      interpretacion,
+    }) as unknown as Record<string, unknown>,
   }
 }

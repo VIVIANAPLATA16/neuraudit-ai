@@ -177,6 +177,7 @@ export function analyticsToPromptContext(analytics: InvestigationAnalytics, resu
       interpretacion: result.interpretacion,
       analytics,
       muestraContratos: result.contratos?.slice(0, 25),
+      elasticInsights: result.elasticInsights,
       fallosCGR: result.fallosResponsabilidadFiscal?.length,
       procuraduria: result.registrosProcuraduria?.length,
       sanciones: result.sancionesContractuales?.length,
