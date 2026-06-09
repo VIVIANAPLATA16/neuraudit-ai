@@ -51,6 +51,7 @@ export default function NeurAuditAI() {
   const [analisisIA, setAnalisisIA] = useState<AnalystAnalysis | null>(null)
   const [analisisLoading, setAnalisisLoading] = useState(false)
   const [error, setError] = useState<string | null>(null)
+  const [pdfError, setPdfError] = useState<string | null>(null)
   const [pdfLoading, setPdfLoading] = useState(false)
   const stepTimerRef = useRef<ReturnType<typeof setInterval> | null>(null)
 
@@ -81,7 +82,7 @@ export default function NeurAuditAI() {
 
     try {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 60000)
+      const timeout = setTimeout(() => controller.abort(), 120000)
 
       const response = await fetch(
         `/api/agent/search?q=${encodeURIComponent(term)}`,
@@ -91,10 +92,28 @@ export default function NeurAuditAI() {
 
       if (!response.ok) {
         const errData = await response.json().catch(() => ({}))
-        throw new Error(errData.error || "Error en la búsqueda")
+        const statusHint =
+          response.status === 504
+            ? "El servidor tardó demasiado. Intente de nuevo; la segunda consulta suele ser más rápida."
+            : response.status >= 500
+              ? "Error temporal del servidor. Intente nuevamente en unos segundos."
+              : null
+        throw new Error(
+          (typeof errData.error === "string" && errData.error) ||
+            statusHint ||
+            `Error en la búsqueda (${response.status})`
+        )
       }
 
-      const data: SearchResult = await response.json()
+      let data: SearchResult
+      try {
+        data = await response.json()
+      } catch {
+        throw new Error("La respuesta del servidor no es válida. Intente nuevamente.")
+      }
+      if (!data?.riesgo) {
+        throw new Error("Investigación incompleta. Intente nuevamente.")
+      }
       saveInvestigation(data)
       addToHistory(data)
       stopStepTimer()
@@ -127,7 +146,11 @@ export default function NeurAuditAI() {
     } catch (err) {
       stopStepTimer()
       if (err instanceof DOMException && err.name === "AbortError") {
-        setError("La búsqueda excedió el tiempo límite. Intente con un término más específico.")
+        setError(
+          "La búsqueda excedió el tiempo límite (120s). Intente de nuevo; si ya buscó esta entidad, la caché acelerará la respuesta."
+        )
+      } else if (err instanceof Error && err.message) {
+        setError(err.message)
       } else {
         setError("No se pudo completar la búsqueda. Verifique su conexión e intente nuevamente.")
       }
@@ -138,11 +161,28 @@ export default function NeurAuditAI() {
 
   const handleGeneratePdf = async () => {
     if (!entityName) return
+    setPdfError(null)
     setPdfLoading(true)
     try {
       const res = await fetch(`/api/expediente/pdf?q=${encodeURIComponent(entityName)}`)
-      if (!res.ok) throw new Error("Error generando PDF")
+      if (!res.ok) {
+        const errData = await res.json().catch(() => ({}))
+        const statusHint =
+          res.status === 504
+            ? "La generación del PDF tardó demasiado. Busque la entidad primero y vuelva a intentar."
+            : res.status >= 500
+              ? "Error temporal al generar el PDF. Intente nuevamente."
+              : null
+        throw new Error(
+          (typeof errData.error === "string" && errData.error) ||
+            statusHint ||
+            `No se pudo generar el PDF (${res.status})`
+        )
+      }
       const blob = await res.blob()
+      if (!blob.size) {
+        throw new Error("El PDF recibido está vacío. Intente nuevamente.")
+      }
       const url = URL.createObjectURL(blob)
       const a = document.createElement("a")
       a.href = url
@@ -150,6 +190,11 @@ export default function NeurAuditAI() {
       a.click()
       URL.revokeObjectURL(url)
     } catch (err) {
+      const message =
+        err instanceof Error
+          ? err.message
+          : "No se pudo generar el expediente PDF. Intente nuevamente."
+      setPdfError(message)
       console.error(err)
     } finally {
       setPdfLoading(false)
@@ -166,6 +211,7 @@ export default function NeurAuditAI() {
     setSearchResult(null)
     setAnalisisIA(null)
     setError(null)
+    setPdfError(null)
   }
 
   return (
@@ -326,6 +372,12 @@ export default function NeurAuditAI() {
               exit={{ opacity: 0 }}
               className="min-h-full py-12 px-8"
             >
+              {pdfError && (
+                <div className="mb-6 max-w-4xl mx-auto glass rounded-xl p-4 border border-destructive/30 flex items-center gap-3">
+                  <AlertTriangle className="size-5 text-destructive shrink-0" />
+                  <p className="text-sm text-foreground">{pdfError}</p>
+                </div>
+              )}
               <InvestigationResults
                 entityName={entityName}
                 riskScore={riskScore}

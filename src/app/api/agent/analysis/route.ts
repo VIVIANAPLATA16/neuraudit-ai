@@ -1,3 +1,4 @@
+export const maxDuration = 120
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import type { SearchResult } from "@/lib/types"

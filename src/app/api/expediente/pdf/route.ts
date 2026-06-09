@@ -1,9 +1,11 @@
+export const maxDuration = 300
 export const dynamic = "force-dynamic"
 import { NextResponse } from "next/server"
 import { jsPDF } from "jspdf"
 import { runInvestigation } from "@/lib/investigation"
-import { generateAnalysis } from "@/lib/analysis"
+import { generateAnalysis, buildDerivedAnalysis } from "@/lib/analysis"
 import { buildExpediente } from "@/lib/expediente"
+import { getCachedInvestigation, setCachedInvestigation } from "@/lib/investigation-cache"
 
 function generatePdf(exp: ReturnType<typeof buildExpediente>): Uint8Array {
   const doc = new jsPDF({ orientation: "portrait", unit: "mm", format: "a4" })
@@ -174,8 +176,21 @@ export async function GET(req: Request) {
   if (!query) return NextResponse.json({ error: "Se requiere parámetro q" }, { status: 400 })
 
   try {
-    const result = await runInvestigation(query)
-    const analysis = await generateAnalysis(result)
+    let result = getCachedInvestigation(query)
+    if (!result) {
+      result = await runInvestigation(query)
+      setCachedInvestigation(query, result)
+    }
+
+    let analysis = result.analisisIA
+    if (!analysis) {
+      try {
+        analysis = await generateAnalysis(result)
+      } catch {
+        analysis = buildDerivedAnalysis(result)
+      }
+    }
+
     const fullResult = { ...result, analisisIA: analysis }
     const expediente = buildExpediente(fullResult)
     const pdfBytes = generatePdf(expediente)

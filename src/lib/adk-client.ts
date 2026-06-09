@@ -4,6 +4,20 @@ import { buildInvestigationAnalytics, analyticsToPromptContext, type Investigati
 const ADK_ANALYZE_URL =
   process.env.NEURAUDIT_ADK_ANALYZE_URL || "http://127.0.0.1:8001/analyze"
 
+function isLocalAdkHost(url: string): boolean {
+  try {
+    const host = new URL(url).hostname
+    return host === "127.0.0.1" || host === "localhost"
+  } catch {
+    return url.includes("127.0.0.1") || url.includes("localhost")
+  }
+}
+
+/** En Vercel, ADK en localhost no es alcanzable — skip inmediato al fallback. */
+function shouldSkipAdkInvoke(): boolean {
+  return process.env.VERCEL === "1" && isLocalAdkHost(ADK_ANALYZE_URL)
+}
+
 export interface ADKAnalyzeResponse {
   analysis: Record<string, unknown>
   engine?: string
@@ -19,6 +33,8 @@ export async function invokeADKAnalysis(
   result: SearchResult,
   compareWith?: SearchResult
 ): Promise<{ raw: Record<string, unknown>; durationMs: number } | null> {
+  if (shouldSkipAdkInvoke()) return null
+
   const analytics = getAnalytics(result)
   const payload = JSON.parse(analyticsToPromptContext(analytics, result))
 
@@ -100,6 +116,10 @@ export interface ADKHealthInfo {
 }
 
 export async function getADKHealth(): Promise<ADKHealthInfo> {
+  if (shouldSkipAdkInvoke()) {
+    return { connected: false }
+  }
+
   try {
     const base = ADK_ANALYZE_URL.replace(/\/analyze$/, "")
     const res = await fetch(`${base}/health`, { signal: AbortSignal.timeout(3000) })
