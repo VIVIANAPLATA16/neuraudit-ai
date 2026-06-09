@@ -33,17 +33,17 @@ const TOOLS = [
   }
 ];
 
-async function investigarEntidad(query: string) {
+async function investigarEntidad(query: string, origin: string) {
   const res = await fetch(
-    `https://neuraudit.vercel.app/api/agent/summary?q=${encodeURIComponent(query)}`,
-    { signal: AbortSignal.timeout(25000), cache: "no-store" }
+    `${origin}/api/agent/summary?q=${encodeURIComponent(query)}`,
+    { signal: AbortSignal.timeout(60000), cache: "no-store" }
   );
   return await res.json();
 }
 
-async function compararEntidades(entidades: string[]) {
+async function compararEntidades(entidades: string[], origin: string) {
   const results = await Promise.allSettled(
-    entidades.slice(0, 4).map(e => investigarEntidad(e))
+    entidades.slice(0, 4).map(e => investigarEntidad(e, origin))
   );
   return results.map((r, i) => ({
     entidad: entidades[i],
@@ -55,6 +55,7 @@ export async function POST(req: Request) {
   try {
     const body = await req.json();
     const { method, params } = body;
+    const origin = new URL(req.url).origin;
 
     // MCP initialize
     if (method === "initialize") {
@@ -84,9 +85,9 @@ export async function POST(req: Request) {
       let result;
 
       if (name === "investigar_entidad") {
-        result = await investigarEntidad(args.query);
+        result = await investigarEntidad(args.query, origin);
       } else if (name === "comparar_entidades") {
-        result = await compararEntidades(args.entidades);
+        result = await compararEntidades(args.entidades, origin);
       } else {
         return NextResponse.json({
           jsonrpc: "2.0",

@@ -1,0 +1,1024 @@
+{
+  "timestamp": "2026-06-09T16:12:19.297Z",
+  "base": "http://127.0.0.1:3000",
+  "tests": {
+    "systemStatus": {
+      "ok": true,
+      "status": 200,
+      "ms": 139484,
+      "json": {
+        "gemini": {
+          "connected": true,
+          "model": "gemini-2.5-flash"
+        },
+        "adk": {
+          "connected": true,
+          "analyzeUrl": "http://127.0.0.1:8001/analyze",
+          "error": null
+        },
+        "apis": {
+          "search": "unknown",
+          "datosGov": "ok"
+        },
+        "mcp": {
+          "status": "configured"
+        },
+        "cache": {
+          "entries": 0,
+          "ttlMs": 1800000
+        },
+        "timestamp": "2026-06-09T16:14:38.756Z"
+      }
+    },
+    "datosGov": {
+      "test": "datos.gov.co_pagination",
+      "page1": {
+        "records": 500,
+        "ms": 798,
+        "ok": true
+      },
+      "page2": {
+        "records": 500,
+        "ms": 358,
+        "ok": true
+      },
+      "paginationWorks": true
+    },
+    "entities": [
+      {
+        "query": "UNGRD",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 30467,
+        "ok": true,
+        "score": 90,
+        "nivel": "ALTO",
+        "totalRegistros": 2071,
+        "fuentes": {
+          "secopII": 850,
+          "secopI": 0,
+          "procesos": 1212,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 0,
+          "contadores": 0,
+          "procuraduria": 9,
+          "sgr": 0,
+          "total": 2071
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 3,
+          "fuentesConError": 2,
+          "fuentesVacias": 7,
+          "fuentesTimeout": 1,
+          "duracionTotalMs": 29455
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 850,
+            "pages": 2,
+            "durationMs": 27405
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 542
+          },
+          {
+            "id": "secopIalt",
+            "status": "timeout",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 20002
+          },
+          {
+            "id": "procesos",
+            "status": "success",
+            "records": 1212,
+            "pages": 3,
+            "durationMs": 29412
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 644
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 618
+          },
+          {
+            "id": "sanciones",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 637
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 759
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 9,
+            "pages": 1,
+            "durationMs": 3522
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 2634
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 6192
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 3967
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 3964
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 90,
+          "reglasActivas": 5,
+          "totalReglas": 10,
+          "sumaPuntos": 90,
+          "factoresAplicados": [
+            "Contratación directa",
+            "Registros Procuraduría",
+            "Baja competencia",
+            "Volumen contractual elevado",
+            "Posible fraccionamiento"
+          ]
+        },
+        "trazabilidadLines": 19
+      },
+      {
+        "query": "ICBF",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 23926,
+        "ok": true,
+        "score": 50,
+        "nivel": "MEDIO",
+        "totalRegistros": 10000,
+        "fuentes": {
+          "secopII": 10000,
+          "secopI": 0,
+          "procesos": 0,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 0,
+          "contadores": 0,
+          "procuraduria": 0,
+          "sgr": 0,
+          "total": 10000
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 1,
+          "fuentesConError": 12,
+          "fuentesVacias": 0,
+          "fuentesTimeout": 0,
+          "duracionTotalMs": 23845
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 23822
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 156
+          },
+          {
+            "id": "secopIalt",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10457
+          },
+          {
+            "id": "procesos",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10453
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10449
+          },
+          {
+            "id": "cgr",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10447
+          },
+          {
+            "id": "sanciones",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10445
+          },
+          {
+            "id": "contadores",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10442
+          },
+          {
+            "id": "procuraduria",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10440
+          },
+          {
+            "id": "sgrGastos",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10438
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10435
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10432
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 10433
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 50,
+          "reglasActivas": 3,
+          "totalReglas": 10,
+          "sumaPuntos": 50,
+          "factoresAplicados": [
+            "Contratación directa",
+            "Volumen contractual elevado",
+            "Posible fraccionamiento"
+          ]
+        },
+        "trazabilidadLines": 17
+      },
+      {
+        "query": "Ministerio de Salud",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 52023,
+        "ok": true,
+        "score": 25,
+        "nivel": "BAJO",
+        "totalRegistros": 2604,
+        "fuentes": {
+          "secopII": 12,
+          "secopI": 2500,
+          "procesos": 1,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 0,
+          "contadores": 0,
+          "procuraduria": 91,
+          "sgr": 0,
+          "total": 2604
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 3,
+          "fuentesConError": 2,
+          "fuentesVacias": 7,
+          "fuentesTimeout": 1,
+          "duracionTotalMs": 51964
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 12,
+            "pages": 1,
+            "durationMs": 2869
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 521
+          },
+          {
+            "id": "secopIalt",
+            "status": "timeout",
+            "records": 2500,
+            "pages": 5,
+            "durationMs": 51948
+          },
+          {
+            "id": "procesos",
+            "status": "success",
+            "records": 1,
+            "pages": 1,
+            "durationMs": 16034
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 429
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 483
+          },
+          {
+            "id": "sanciones",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 473
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 477
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 91,
+            "pages": 1,
+            "durationMs": 1059
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 628
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 1030
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 716
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 726
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 25,
+          "reglasActivas": 1,
+          "totalReglas": 10,
+          "sumaPuntos": 25,
+          "factoresAplicados": [
+            "Registros Procuraduría"
+          ]
+        },
+        "trazabilidadLines": 19
+      },
+      {
+        "query": "Alcaldía de Bogotá",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 20035,
+        "ok": true,
+        "score": 25,
+        "nivel": "BAJO",
+        "totalRegistros": 1,
+        "fuentes": {
+          "secopII": 0,
+          "secopI": 0,
+          "procesos": 0,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 0,
+          "contadores": 0,
+          "procuraduria": 1,
+          "sgr": 0,
+          "total": 1
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 1,
+          "fuentesConError": 2,
+          "fuentesVacias": 9,
+          "fuentesTimeout": 1,
+          "duracionTotalMs": 20007
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 15612
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 498
+          },
+          {
+            "id": "secopIalt",
+            "status": "timeout",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 20001
+          },
+          {
+            "id": "procesos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 16578
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 472
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 468
+          },
+          {
+            "id": "sanciones",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 466
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 538
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 1,
+            "pages": 1,
+            "durationMs": 973
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 544
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 924
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 893
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 809
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 25,
+          "reglasActivas": 1,
+          "totalReglas": 10,
+          "sumaPuntos": 25,
+          "factoresAplicados": [
+            "Registros Procuraduría"
+          ]
+        },
+        "trazabilidadLines": 17
+      }
+    ],
+    "cache": {
+      "first": {
+        "query": "ICBF",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 30985,
+        "ok": true,
+        "score": 90,
+        "nivel": "ALTO",
+        "totalRegistros": 30137,
+        "fuentes": {
+          "secopII": 10000,
+          "secopI": 10000,
+          "procesos": 10000,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 83,
+          "contadores": 0,
+          "procuraduria": 54,
+          "sgr": 0,
+          "total": 30137
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 5,
+          "fuentesConError": 2,
+          "fuentesVacias": 6,
+          "fuentesTimeout": 0,
+          "duracionTotalMs": 30900
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 27613
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 425
+          },
+          {
+            "id": "secopIalt",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 30850
+          },
+          {
+            "id": "procesos",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 26641
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 338
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 419
+          },
+          {
+            "id": "sanciones",
+            "status": "success",
+            "records": 83,
+            "pages": 1,
+            "durationMs": 442
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 447
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 54,
+            "pages": 1,
+            "durationMs": 806
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 460
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 759
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 672
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 630
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 90,
+          "reglasActivas": 5,
+          "totalReglas": 10,
+          "sumaPuntos": 90,
+          "factoresAplicados": [
+            "Sanciones contractuales",
+            "Registros Procuraduría",
+            "Baja competencia",
+            "Volumen contractual elevado",
+            "Posible fraccionamiento"
+          ]
+        },
+        "trazabilidadLines": 20
+      },
+      "second": {
+        "query": "ICBF",
+        "nocache": false,
+        "httpStatus": 200,
+        "ms": 54,
+        "ok": true,
+        "score": 90,
+        "nivel": "ALTO",
+        "totalRegistros": 30137,
+        "fuentes": {
+          "secopII": 10000,
+          "secopI": 10000,
+          "procesos": 10000,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 83,
+          "contadores": 0,
+          "procuraduria": 54,
+          "sgr": 0,
+          "total": 30137
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 5,
+          "fuentesConError": 2,
+          "fuentesVacias": 6,
+          "fuentesTimeout": 0,
+          "duracionTotalMs": 30900,
+          "cached": true,
+          "cacheTtlMs": 1800000
+        },
+        "cached": true,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 27613
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 425
+          },
+          {
+            "id": "secopIalt",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 30850
+          },
+          {
+            "id": "procesos",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 26641
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 338
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 419
+          },
+          {
+            "id": "sanciones",
+            "status": "success",
+            "records": 83,
+            "pages": 1,
+            "durationMs": 442
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 447
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 54,
+            "pages": 1,
+            "durationMs": 806
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 460
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 759
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 672
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 630
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 90,
+          "reglasActivas": 5,
+          "totalReglas": 10,
+          "sumaPuntos": 90,
+          "factoresAplicados": [
+            "Sanciones contractuales",
+            "Registros Procuraduría",
+            "Baja competencia",
+            "Volumen contractual elevado",
+            "Posible fraccionamiento"
+          ]
+        },
+        "trazabilidadLines": 20
+      },
+      "nocache": {
+        "query": "ICBF",
+        "nocache": true,
+        "httpStatus": 200,
+        "ms": 39051,
+        "ok": true,
+        "score": 100,
+        "nivel": "ALTO",
+        "totalRegistros": 20637,
+        "fuentes": {
+          "secopII": 10000,
+          "secopI": 500,
+          "procesos": 10000,
+          "ejecucion": 0,
+          "cgr": 0,
+          "sanciones": 83,
+          "contadores": 0,
+          "procuraduria": 54,
+          "sgr": 0,
+          "total": 20637
+        },
+        "meta": {
+          "fuentesConsultadas": 13,
+          "fuentesExitosas": 4,
+          "fuentesConError": 2,
+          "fuentesVacias": 6,
+          "fuentesTimeout": 1,
+          "duracionTotalMs": 38967
+        },
+        "cached": false,
+        "fuentesTraceCount": 13,
+        "fuentesTraceSummary": [
+          {
+            "id": "secopII",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 22039
+          },
+          {
+            "id": "secopI",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 155
+          },
+          {
+            "id": "secopIalt",
+            "status": "timeout",
+            "records": 500,
+            "pages": 1,
+            "durationMs": 38907
+          },
+          {
+            "id": "procesos",
+            "status": "success",
+            "records": 10000,
+            "pages": 20,
+            "durationMs": 19028
+          },
+          {
+            "id": "ejecucion",
+            "status": "error",
+            "records": 0,
+            "pages": 0,
+            "durationMs": 992
+          },
+          {
+            "id": "cgr",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 1011
+          },
+          {
+            "id": "sanciones",
+            "status": "success",
+            "records": 83,
+            "pages": 1,
+            "durationMs": 1077
+          },
+          {
+            "id": "contadores",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 922
+          },
+          {
+            "id": "procuraduria",
+            "status": "success",
+            "records": 54,
+            "pages": 1,
+            "durationMs": 3809
+          },
+          {
+            "id": "sgrGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 2689
+          },
+          {
+            "id": "sgrProgGastos",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 5558
+          },
+          {
+            "id": "sgrEjecIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 4115
+          },
+          {
+            "id": "sgrProgIng",
+            "status": "empty",
+            "records": 0,
+            "pages": 1,
+            "durationMs": 4007
+          }
+        ],
+        "scoreExplainability": {
+          "scoreFinal": 100,
+          "reglasActivas": 6,
+          "totalReglas": 10,
+          "sumaPuntos": 110,
+          "factoresAplicados": [
+            "Contratación directa",
+            "Sanciones contractuales",
+            "Registros Procuraduría",
+            "Baja competencia",
+            "Volumen contractual elevado",
+            "Posible fraccionamiento"
+          ]
+        },
+        "trazabilidadLines": 20
+      },
+      "speedup": 100
+    },
+    "analysis": {
+      "label": "adk_gemini_fallback",
+      "ms": 87,
+      "hasConclusion": false
+    }
+  }
+}

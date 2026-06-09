@@ -1,8 +1,12 @@
 import httpx
+import os
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools import FunctionTool
 
-NEURAUDIT_API = "https://neuraudit.vercel.app/api/agent/search"
+NEURAUDIT_API = os.environ.get(
+    "NEURAUDIT_API",
+    "http://127.0.0.1:3000/api/agent/search",
+)
 
 def search_contracts(query: str) -> dict:
     """
@@ -20,21 +24,41 @@ def search_contracts(query: str) -> dict:
         y datos económicos del análisis.
     """
     try:
-        with httpx.Client(timeout=30) as client:
+        with httpx.Client(timeout=60) as client:
             response = client.get(
                 NEURAUDIT_API,
                 params={"q": query}
             )
+            if response.status_code != 200:
+                return {
+                    "error": f"API respondió con código {response.status_code}",
+                    "query": query,
+                }
             data = response.json()
-            
+            if data.get("error"):
+                return {"error": data["error"], "query": query}
+
             riesgo = data.get("riesgo", {})
             fuentes = data.get("fuentes", {})
-            
+
+            if not riesgo and not fuentes.get("total"):
+                return {
+                    "query": query,
+                    "score": 0,
+                    "nivel": "SIN DATOS",
+                    "alertas": [],
+                    "total_registros": 0,
+                    "mensaje": "No se encontraron registros en las fuentes consultadas.",
+                }
+
             return {
                 "query": query,
                 "score": riesgo.get("score", 0),
                 "nivel": riesgo.get("nivel", "DESCONOCIDO"),
                 "alertas": riesgo.get("alertas", []),
+                "score_breakdown": riesgo.get("scoreBreakdown", []),
+                "hallazgos": riesgo.get("hallazgos", []),
+                "recomendaciones": riesgo.get("recomendaciones", []),
                 "total_registros": fuentes.get("total", 0),
                 "fuentes": {
                     "secop_ii": fuentes.get("secopII", 0),
@@ -63,6 +87,10 @@ def search_contracts(query: str) -> dict:
                 "registros_procuraduria": len(data.get("registrosProcuraduria", [])),
                 "timestamp": data.get("timestamp", ""),
             }
+    except httpx.TimeoutException:
+        return {"error": "Timeout: la API no respondió en 60 segundos", "query": query}
+    except httpx.ConnectError:
+        return {"error": "No se pudo conectar con NeurAudit API", "query": query}
     except Exception as e:
         return {"error": str(e), "query": query}
 
@@ -211,8 +239,10 @@ def generate_fiscal_report(query: str, include_recommendations: bool = True) -> 
         return {"error": str(e), "query": query}
 
 
+NEURAUDIT_GEMINI_MODEL = os.environ.get("NEURAUDIT_GEMINI_MODEL", "gemini-2.5-flash")
+
 root_agent = Agent(
-    model="gemini-2.5-flash",
+    model=NEURAUDIT_GEMINI_MODEL,
     name="NeurAudit_AI",
     description="Agente de inteligencia anticorrupción para contratos públicos colombianos. Analiza datos reales de SECOP I+II, CGR, Procuraduría, SGR Regalías y 13 fuentes simultáneas para detectar riesgos de corrupción.",
     instruction="""Eres NeurAudit AI, el primer agente de inteligencia anticorrupción para contratación pública colombiana.

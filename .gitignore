@@ -32,6 +32,7 @@ yarn-error.log*
 
 # env files (can opt-in for committing if needed)
 .env*
+!.env.example
 
 # vercel
 .vercel
@@ -39,3 +40,14 @@ yarn-error.log*
 # typescript
 *.tsbuildinfo
 next-env.d.ts
+
+# python / adk runtime
+__pycache__/
+*.pyc
+neuraudit_agent/.adk/
+
+# local backups (preserve on disk, do not commit)
+*.bak
+src/app/page.original
+src/app/page.dashboard-viejo
+src/app/page.tsx.backup

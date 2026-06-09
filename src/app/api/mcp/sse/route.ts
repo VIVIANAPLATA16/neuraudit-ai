@@ -25,16 +25,16 @@ const TOOLS = [
   }
 ];
 
-async function investigar(query: string) {
+async function investigar(query: string, origin: string) {
   const res = await fetch(
-    `https://neuraudit.vercel.app/api/agent/summary?q=${encodeURIComponent(query)}`,
-    { signal: AbortSignal.timeout(25000), cache: "no-store" }
+    `${origin}/api/agent/summary?q=${encodeURIComponent(query)}`,
+    { signal: AbortSignal.timeout(60000), cache: "no-store" }
   );
   return await res.json();
 }
 
-async function comparar(entidades: string[]) {
-  const results = await Promise.allSettled(entidades.slice(0, 4).map(e => investigar(e)));
+async function comparar(entidades: string[], origin: string) {
+  const results = await Promise.allSettled(entidades.slice(0, 4).map(e => investigar(e, origin)));
   return results.map((r, i) => ({
     entidad: entidades[i],
     ...(r.status === "fulfilled" ? r.value : { error: true })
@@ -54,7 +54,7 @@ export async function GET(req: Request) {
     async start(controller) {
       // Send endpoint event for MCP over SSE
       sendEvent(controller, "endpoint", {
-        uri: `https://neuraudit.vercel.app/api/mcp/message?sessionId=${sessionId}`
+        uri: `${url.origin}/api/mcp/message?sessionId=${sessionId}`
       });
     }
   });
@@ -72,6 +72,7 @@ export async function GET(req: Request) {
 export async function POST(req: Request) {
   const body = await req.json();
   const { method, params, id } = body;
+  const origin = new URL(req.url).origin;
 
   const respond = (result: any) => Response.json({ jsonrpc: "2.0", id, result });
   const error = (code: number, message: string) =>
@@ -92,8 +93,8 @@ export async function POST(req: Request) {
   if (method === "tools/call") {
     const { name, arguments: args } = params;
     let result;
-    if (name === "investigar_entidad") result = await investigar(args.query);
-    else if (name === "comparar_entidades") result = await comparar(args.entidades);
+    if (name === "investigar_entidad") result = await investigar(args.query, origin);
+    else if (name === "comparar_entidades") result = await comparar(args.entidades, origin);
     else return error(-32601, `Tool not found: ${name}`);
     return respond({ content: [{ type: "text", text: JSON.stringify(result) }] });
   }

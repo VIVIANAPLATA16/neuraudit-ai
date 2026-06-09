@@ -1,0 +1,13 @@
+node_modules
+.next
+.git
+.env*
+!.env.example
+neuraudit_agent/.adk
+neuraudit_agent/.env
+docs/phase22-validation-raw.json
+*.md.bak
+src/app/page.dashboard-viejo
+src/app/page.original
+src/app/page.tsx.backup
+src/app/globals.css.bak

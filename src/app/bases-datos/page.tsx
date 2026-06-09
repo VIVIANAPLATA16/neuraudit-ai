@@ -1,8 +1,8 @@
 "use client";
 
-import Link from "next/link";
 import { useEffect, useMemo, useState } from "react";
 import { Database, RefreshCcw, Search } from "lucide-react";
+import { AppShell } from "@/components/app-shell";
 
 type DatabaseItem = {
   id: string;
@@ -316,200 +316,61 @@ export default function BasesDatosPage() {
   }, []);
 
   return (
-    <main
-      style={{
-        minHeight: "100vh",
-        background: "#EEF2F7",
-        fontFamily: "Segoe UI, Arial, sans-serif",
-        color: "#1D2B3A",
-      }}
+    <AppShell
+      title="Fuentes de Datos"
+      subtitle="Consulta directa a APIs Soda2 de datos.gov.co y AWS CSV"
     >
-      <header
-        style={{
-          background: "#003366",
-          color: "#fff",
-          padding: "16px 24px",
-          display: "flex",
-          justifyContent: "space-between",
-          alignItems: "center",
-          gap: 16,
-        }}
-      >
-        <div>
-          <h1 style={{ margin: 0, fontSize: 18, letterSpacing: 0.4 }}>
-            Fuentes de Datos para Auditoría
-          </h1>
-          <p style={{ margin: "4px 0 0", fontSize: 12, color: "rgba(255,255,255,0.8)" }}>
-            Versión productiva consumiendo directo APIs Soda2 de datos.gov.co
-          </p>
-        </div>
-        <Link
-          href="/"
-          style={{
-            background: "#F5A800",
-            color: "#003366",
-            borderRadius: 8,
-            textDecoration: "none",
-            fontWeight: 700,
-            fontSize: 12,
-            padding: "8px 12px",
-          }}
-        >
-          Volver al analizador
-        </Link>
-      </header>
-
-      <section
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "24px 24px 12px",
-        }}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(220px, 1fr))",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #DDE3EC",
-              borderRadius: 10,
-              padding: 14,
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#003366", fontWeight: 700, letterSpacing: 1.3 }}>
-              KPI 01
-            </div>
-            <div style={{ marginTop: 4, fontSize: 28, color: "#003366", fontWeight: 800 }}>
-              {totalRegistros.toLocaleString("es-CO")}
-            </div>
-            <div style={{ fontSize: 12, color: "#5B6E86" }}>Total registros visibles</div>
+      {/* KPIs */}
+      <section className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4 mb-8">
+        {[
+          { label: "Registros visibles", value: totalRegistros.toLocaleString("es-CO") },
+          { label: "Entidades únicas", value: entidadesAprox.toLocaleString("es-CO") },
+          { label: "Última consulta", value: ultimaActualizacionGlobal, small: true },
+          { label: "Datasets activos", value: String(datasetsActivos) },
+        ].map((kpi) => (
+          <div key={kpi.label} className="glass rounded-2xl p-5">
+            <p className="text-xs text-muted-foreground uppercase tracking-wider mb-2">{kpi.label}</p>
+            <p className={`font-bold text-foreground ${kpi.small ? "text-sm" : "text-3xl"}`}>{kpi.value}</p>
           </div>
-
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #DDE3EC",
-              borderRadius: 10,
-              padding: 14,
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#003366", fontWeight: 700, letterSpacing: 1.3 }}>
-              KPI 02
-            </div>
-            <div style={{ marginTop: 4, fontSize: 28, color: "#003366", fontWeight: 800 }}>
-              {entidadesAprox.toLocaleString("es-CO")}
-            </div>
-            <div style={{ fontSize: 12, color: "#5B6E86" }}>Entidades únicas aproximadas</div>
-          </div>
-
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #DDE3EC",
-              borderRadius: 10,
-              padding: 14,
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#003366", fontWeight: 700, letterSpacing: 1.3 }}>
-              KPI 03
-            </div>
-            <div style={{ marginTop: 7, fontSize: 15, color: "#003366", fontWeight: 800 }}>
-              {ultimaActualizacionGlobal}
-            </div>
-            <div style={{ fontSize: 12, color: "#5B6E86", marginTop: 9 }}>
-              Última actualización de consulta
-            </div>
-          </div>
-
-          <div
-            style={{
-              background: "#fff",
-              border: "1px solid #DDE3EC",
-              borderRadius: 10,
-              padding: 14,
-            }}
-          >
-            <div style={{ fontSize: 10, color: "#003366", fontWeight: 700, letterSpacing: 1.3 }}>
-              KPI 04
-            </div>
-            <div style={{ marginTop: 4, fontSize: 28, color: "#003366", fontWeight: 800 }}>
-              {datasetsActivos}
-            </div>
-            <div style={{ fontSize: 12, color: "#5B6E86" }}>Datasets activos conectados</div>
-          </div>
-        </div>
+        ))}
       </section>
 
-      <section
-        style={{
-          maxWidth: 1200,
-          margin: "0 auto",
-          padding: "0 24px 24px",
-          display: "grid",
-          gap: 14,
-          gridTemplateColumns: "repeat(auto-fit, minmax(280px, 1fr))",
-        }}
-      >
+      {/* Datasets */}
+      <section className="grid gap-6 grid-cols-1 xl:grid-cols-2">
         {BASES_DATOS.map((db) => (
-          <article
-            key={db.id}
-            style={{
-              background: "#fff",
-              border: "1px solid #DDE3EC",
-              borderRadius: 10,
-              padding: 16,
-              boxShadow: "0 4px 12px rgba(0, 51, 102, 0.07)",
-            }}
-          >
-            <div style={{ fontSize: 10, fontWeight: 700, color: "#003366", letterSpacing: 1.4 }}>
-              <span style={{ display: "inline-flex", alignItems: "center", gap: 6 }}>
-                <Database size={13} />
-                BASE DE DATOS
-              </span>
+          <article key={db.id} className="glass rounded-2xl p-6 space-y-4">
+            <div className="flex items-center gap-2 text-xs text-primary font-semibold uppercase tracking-wider">
+              <Database className="size-4" />
+              Base de datos
             </div>
-            <h2 style={{ margin: "8px 0 10px", color: "#003366", fontSize: 16 }}>{db.nombre}</h2>
-            <p style={{ margin: "0 0 12px", fontSize: 13, lineHeight: 1.5 }}>{db.descripcion}</p>
+            <h2 className="text-lg font-semibold text-foreground">{db.nombre}</h2>
+            <p className="text-sm text-muted-foreground leading-relaxed">{db.descripcion}</p>
 
-            <div style={{ display: "grid", gap: 8, fontSize: 12 }}>
+            <div className="grid gap-2 text-sm">
+              <div className="flex gap-2">
+                <span className="text-muted-foreground">Estado:</span>
+                <span className={db.estado === "Activa" ? "text-success" : "text-warning"}>{db.estado}</span>
+              </div>
+              <div className="flex gap-2">
+                <span className="text-muted-foreground">Fuente:</span>
+                <span className="text-foreground">{db.fuente}</span>
+              </div>
               <div>
-                <strong>Estado:</strong>{" "}
-                <span style={{ color: db.estado === "Activa" ? "#2E7D32" : "#E65100" }}>
-                  {db.estado}
+                <span className="text-muted-foreground text-sm">
+                  {db.sourceType === "csvApi" ? "API Base:" : "API Soda2:"}
                 </span>
-              </div>
-              <div>
-                <strong>Fuente:</strong> {db.fuente}
-              </div>
-              <div>
-                <strong>{db.sourceType === "csvApi" ? "API Base:" : "API Soda2:"}</strong>
-                <div
-                  style={{
-                    marginTop: 6,
-                    background: "#F5F7FA",
-                    border: "1px dashed #B8C5D8",
-                    borderRadius: 8,
-                    padding: "7px 9px",
-                    fontFamily: "monospace",
-                    fontSize: 11,
-                    wordBreak: "break-all",
-                  }}
-                >
+                <div className="mt-2 p-3 rounded-xl bg-muted/30 border border-border font-mono text-xs text-muted-foreground break-all">
                   {db.apiSoda2}
                 </div>
               </div>
               {db.docsUrl && (
                 <div>
-                  <strong>Docs:</strong>{" "}
+                  <span className="text-muted-foreground">Docs: </span>
                   <a
                     href={db.docsUrl}
                     target="_blank"
                     rel="noreferrer"
-                    style={{ color: "#003366", fontWeight: 700 }}
+                    className="text-primary hover:underline font-medium"
                   >
                     Swagger /docs
                   </a>
@@ -517,18 +378,10 @@ export default function BasesDatosPage() {
               )}
             </div>
 
-            <div
-              style={{
-                marginTop: 12,
-                background: "#F8FAFD",
-                border: "1px solid #DDE3EC",
-                borderRadius: 10,
-                padding: 10,
-              }}
-            >
+            <div className="glass rounded-xl p-4 space-y-3">
               {db.sourceType === "csvApi" && (
-                <div style={{ marginBottom: 8, display: "flex", alignItems: "center", gap: 8 }}>
-                  <div style={{ fontSize: 11, color: "#003366", fontWeight: 700 }}>Columna filtro:</div>
+                <div className="flex items-center gap-3 flex-wrap">
+                  <span className="text-xs text-muted-foreground font-medium">Columna filtro:</span>
                   <select
                     value={selectedFilterColumnById[db.id] || db.filterColumn || "entidad"}
                     onChange={(e) => {
@@ -536,14 +389,7 @@ export default function BasesDatosPage() {
                       setSelectedFilterColumnById((prev) => ({ ...prev, [db.id]: value }));
                       fetchDataset(db, queryById[db.id] || "");
                     }}
-                    style={{
-                      border: "1px solid #DDE3EC",
-                      borderRadius: 8,
-                      padding: "6px 8px",
-                      fontSize: 11,
-                      color: "#003366",
-                      background: "#fff",
-                    }}
+                    className="glass rounded-lg px-3 py-2 text-xs text-foreground bg-transparent border border-border"
                   >
                     {(db.filterColumns || [db.filterColumn || "entidad"]).map((column) => (
                       <option key={column} value={column}>
@@ -553,54 +399,21 @@ export default function BasesDatosPage() {
                   </select>
                 </div>
               )}
-              <div style={{ display: "flex", gap: 8 }}>
+
+              <div className="flex gap-2">
                 <input
                   value={queryById[db.id] || ""}
                   placeholder={initialHintById[db.id]}
-                  onChange={(e) => {
-                    setQueryById((prev) => ({ ...prev, [db.id]: e.target.value }));
-                  }}
-                  onKeyDown={(e) => {
-                    if (e.key === "Enter") {
-                      fetchDataset(db);
-                    }
-                  }}
-                  style={{
-                    flex: 1,
-                    border: "1px solid #DDE3EC",
-                    borderRadius: 8,
-                    padding: "8px 10px",
-                    fontSize: 12,
-                    outline: "none",
-                    background: "#fff",
-                  }}
+                  onChange={(e) => setQueryById((prev) => ({ ...prev, [db.id]: e.target.value }))}
+                  onKeyDown={(e) => e.key === "Enter" && fetchDataset(db)}
+                  className="flex-1 glass rounded-lg px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground bg-transparent border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
                 />
                 <button
                   type="button"
-                  onClick={() => {
-                    fetchDataset(db);
-                  }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#00264D";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#003366";
-                  }}
-                  style={{
-                    border: "none",
-                    borderRadius: 8,
-                    padding: "8px 10px",
-                    background: "#003366",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: 11,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
+                  onClick={() => fetchDataset(db)}
+                  className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-xs font-medium flex items-center gap-1.5 hover:bg-primary/90 transition-colors"
                 >
-                  <Search size={14} />
+                  <Search className="size-3.5" />
                   Buscar
                 </button>
                 <button
@@ -609,82 +422,36 @@ export default function BasesDatosPage() {
                     setQueryById((prev) => ({ ...prev, [db.id]: "" }));
                     fetchDataset(db, "");
                   }}
-                  onMouseEnter={(e) => {
-                    e.currentTarget.style.background = "#E8EDF6";
-                  }}
-                  onMouseLeave={(e) => {
-                    e.currentTarget.style.background = "#F5F7FA";
-                  }}
-                  style={{
-                    border: "1px solid #DDE3EC",
-                    borderRadius: 8,
-                    padding: "8px 10px",
-                    background: "#F5F7FA",
-                    color: "#003366",
-                    cursor: "pointer",
-                    fontWeight: 700,
-                    fontSize: 11,
-                    display: "inline-flex",
-                    alignItems: "center",
-                    gap: 6,
-                  }}
+                  className="px-3 py-2 rounded-lg glass border border-border text-muted-foreground text-xs font-medium flex items-center gap-1.5 hover:text-foreground transition-colors"
                 >
-                  <RefreshCcw size={13} />
+                  <RefreshCcw className="size-3.5" />
                   Reset
                 </button>
               </div>
 
-              <div style={{ marginTop: 8, fontSize: 11, color: "#567", minHeight: 16 }}>
+              <p className="text-xs text-muted-foreground">
                 {loadingById[db.id]
-                  ? "Consultando API Soda2..."
-                  : "Registros cargados: " +
-                    String(countById[db.id] || 0) +
-                    (lastFetchById[db.id]
-                      ? " · actualizado " +
-                        new Date(lastFetchById[db.id]).toLocaleTimeString("es-CO")
-                      : "")}
-              </div>
+                  ? "Consultando API..."
+                  : `Registros: ${countById[db.id] || 0}${
+                      lastFetchById[db.id]
+                        ? ` · ${new Date(lastFetchById[db.id]).toLocaleTimeString("es-CO")}`
+                        : ""
+                    }`}
+              </p>
+
               {errorById[db.id] && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    fontSize: 11,
-                    color: "#C62828",
-                    background: "#FFEBEE",
-                    border: "1px solid #EF9A9A",
-                    borderRadius: 8,
-                    padding: "6px 8px",
-                  }}
-                >
+                <div className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-lg p-3">
                   {errorById[db.id]}
                 </div>
               )}
 
               {!!rowsById[db.id]?.length && (
-                <div
-                  style={{
-                    marginTop: 8,
-                    border: "1px solid #DDE3EC",
-                    borderRadius: 8,
-                    overflow: "auto",
-                    maxHeight: 260,
-                    background: "#fff",
-                  }}
-                >
-                  <table style={{ borderCollapse: "collapse", width: "100%", fontSize: 11 }}>
+                <div className="rounded-xl border border-border overflow-auto max-h-64">
+                  <table className="w-full text-xs">
                     <thead>
-                      <tr style={{ background: "#EEF3FA" }}>
+                      <tr className="bg-muted/30 text-muted-foreground">
                         {getColumns(rowsById[db.id] || []).map((col) => (
-                          <th
-                            key={col}
-                            style={{
-                              borderBottom: "1px solid #DDE3EC",
-                              textAlign: "left",
-                              color: "#003366",
-                              padding: "8px 9px",
-                              whiteSpace: "nowrap",
-                            }}
-                          >
+                          <th key={col} className="text-left p-2 whitespace-nowrap font-medium">
                             {col}
                           </th>
                         ))}
@@ -692,17 +459,9 @@ export default function BasesDatosPage() {
                     </thead>
                     <tbody>
                       {(rowsById[db.id] || []).map((row, idx) => (
-                        <tr key={idx}>
+                        <tr key={idx} className="border-t border-border/50">
                           {getColumns(rowsById[db.id] || []).map((col) => (
-                            <td
-                              key={col}
-                              style={{
-                                borderBottom: "1px solid #EEF2F7",
-                                padding: "7px 9px",
-                                color: "#324A63",
-                                verticalAlign: "top",
-                              }}
-                            >
+                            <td key={col} className="p-2 text-foreground align-top">
                               {formatCell(row[col])}
                             </td>
                           ))}
@@ -714,11 +473,9 @@ export default function BasesDatosPage() {
               )}
             </div>
 
-            <div style={{ marginTop: 12 }}>
-              <div style={{ fontSize: 11, fontWeight: 700, color: "#003366", marginBottom: 6 }}>
-                Uso sugerido
-              </div>
-              <ul style={{ margin: 0, paddingLeft: 18, fontSize: 12, lineHeight: 1.6 }}>
+            <div>
+              <p className="text-xs font-semibold text-muted-foreground mb-2">Uso sugerido</p>
+              <ul className="text-sm text-muted-foreground space-y-1 list-disc list-inside">
                 {db.usoSugerido.map((item) => (
                   <li key={item}>{item}</li>
                 ))}
@@ -727,6 +484,6 @@ export default function BasesDatosPage() {
           </article>
         ))}
       </section>
-    </main>
+    </AppShell>
   );
 }
