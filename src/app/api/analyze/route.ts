@@ -1,3 +1,7 @@
+/**
+ * LEGACY — Análisis de texto de contrato individual (Anthropic/OpenAI).
+ * No usado por la UI principal. Ver POST /api/agent/analysis para el flujo actual.
+ */
 import { NextResponse } from "next/server";
 import OpenAI from "openai";
 import {

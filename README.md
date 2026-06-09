@@ -1,98 +1,160 @@
-# NeurAudit AI — Plataforma de Inteligencia Anticorrupción
+# NeurAudit AI
 
-NeurAudit AI analiza entidades de contratación pública colombiana cruzando datos oficiales de SECOP, Contraloría, Procuraduría, SGR y sanciones. Genera score de riesgo, expedientes, informes IA y comparaciones.
+**Agente de inteligencia anticorrupción para contratación pública colombiana.**
 
-## Arquitectura
+Google Cloud Rapid Agent Hackathon 2026 · Gemini · ADK · MCP
+
+**Demo:** https://neuraudit.vercel.app
+
+---
+
+## Qué es
+
+NeurAudit cruza **13 fuentes oficiales** (SECOP, Contraloría, Procuraduría, SGR, sanciones) y en segundos entrega:
+
+- Score de riesgo **0–100** con explicabilidad formal
+- Trazabilidad por fuente (`success` / `partial` / `error` / `timeout` / `empty`)
+- Informe de auditoría con **Gemini 2.5 Flash**
+- Expediente PDF y comparación de entidades
+- Integración **MCP** para Google Cloud Agent Builder
+
+---
+
+## Cómo funciona (60 segundos)
 
 ```
-Usuario (Next.js UI)
-    │
-    ▼
-GET /api/agent/search?q=...
-    │  ├─ Caché en memoria (TTL configurable)
-    │  └─ runInvestigation() → 13 fuentes datos.gov.co (paginación real)
-    │         ├─ fuentesTrace (success | timeout | error | empty)
-    │         ├─ scoreExplainability (10 reglas documentadas)
-    │         └─ risk-engine + interpretación
-    │
-POST /api/agent/analysis
-    │  └─ ADK FastAPI :8001 → Gemini → Fallback derivado
-    │
-GET /api/agent/compare?a=...&b=...
-    └─ Mismo pipeline IA unificado (ADK → Gemini → Fallback)
+Buscar entidad → 13 APIs datos.gov.co → Motor de riesgo → Score + hallazgos
+                                              ↓
+                                    Panel Analista IA (Gemini)
+                                              ↓
+                                    PDF / Comparar / Historial
 ```
 
-### Servicios
+| Componente | Dónde |
+|------------|-------|
+| UI + APIs | **Vercel** (Next.js) |
+| Datos | **datos.gov.co** (tiempo real) |
+| IA profunda | **ADK Analyze** (FastAPI) → **Gemini** |
+| Agente ADK | Local `:8000` dev-ui o Agent Builder vía MCP |
+| Base de datos | **No SQL** — caché memoria + localStorage cliente |
 
-| Servicio | Puerto | Rol |
-|----------|--------|-----|
-| Next.js | 3000 | UI + API routes |
-| ADK Analyze (FastAPI) | 8001 | Análisis profundo vía Gemini |
+Diagrama completo: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
 
-### Fuentes de datos (datos.gov.co / Socrata)
+---
 
-13 datasets con paginación automática (`$limit` + `$offset`, hasta 10.000 registros/fuente):
-
-- SECOP II, SECOP I, SECOP I alternativo
-- Procesos de contratación, ejecución contractual
-- Responsabilidad fiscal (CGR), sanciones contractuales
-- Contadores sancionados, Relatoría Procuraduría
-- SGR (gastos, programación, ejecución ingresos)
-
-## Inicio rápido (desarrollo)
+## Setup local
 
 ```bash
+git clone https://github.com/VIVIANAPLATA16/neuraudit-ai.git
+cd neuraudit-ai
 npm install
 cp .env.example .env.local
-# Agregar GOOGLE_API_KEY en .env.local
-
-# Terminal 1 — ADK Analyze
-uvicorn neuraudit_agent.analyze_service:app --host 127.0.0.1 --port 8001
-
-# Terminal 2 — Next.js
-npm run dev
+# Editar: GEMINI_API_KEY=...
 ```
 
-## Docker Compose
+### Opción A — Desarrollo rápido
 
 ```bash
-cp .env.example .env
-# Configurar GOOGLE_API_KEY en .env
+# Terminal 1
+python3 -m uvicorn neuraudit_agent.analyze_service:app --port 8001
 
+# Terminal 2
+npm run dev
+# → http://localhost:3000
+```
+
+### Opción B — Docker
+
+```bash
 docker compose up --build
 ```
 
-- App: http://localhost:3000
-- ADK health: http://localhost:8001/health
+### Opción C — ADK Dev UI (demo hackathon)
 
-## Variables de entorno
+```bash
+adk web --port 8000
+# → http://127.0.0.1:8000/dev-ui/
+```
 
-Ver `.env.example`:
+---
 
-| Variable | Descripción |
-|----------|-------------|
-| `GOOGLE_API_KEY` | API key Gemini (requerida para IA) |
-| `NEURAUDIT_ADK_ANALYZE_URL` | URL del servicio ADK (default `http://127.0.0.1:8001/analyze`) |
-| `NEURAUDIT_CACHE_TTL_MS` | TTL caché investigaciones (default 1.800.000 ms = 30 min) |
-| `NEURAUDIT_GEMINI_MODEL` | Modelo Gemini (default `gemini-2.5-flash`) |
+## Deploy
+
+### Frontend (Vercel)
+
+Conectado a `main` en GitHub. Push a `main` → auto-deploy.
+
+```bash
+vercel deploy --prod   # manual si necesario
+```
+
+Variables en Vercel: `GEMINI_API_KEY`, `NEURAUDIT_ADK_ANALYZE_URL` (si ADK en cloud).
+
+### Agente Python (Cloud Run)
+
+Guía completa: [`docs/AGENT_DEPLOYMENT.md`](docs/AGENT_DEPLOYMENT.md)
+
+---
+
+## Agente explicado simple
+
+NeurAudit tiene **3 interfaces de agente**:
+
+1. **UI web** — el usuario busca y explora resultados
+2. **MCP Server** (`/api/mcp`) — Google Agent Builder invoca herramientas
+3. **ADK Analyze** (`analyze_service.py`) — cerebro IA que Next.js consulta
+
+Pipeline IA: `ADK → Gemini → Fallback derivado` (nunca deja al usuario sin respuesta).
+
+---
 
 ## API principal
 
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| `/api/agent/search?q=` | GET | Investigación completa (+ `?insights=true` para IA) |
-| `/api/agent/search?q=&nocache=true` | GET | Bypass caché |
-| `/api/agent/analysis` | POST | Análisis IA (ADK → Gemini → Fallback) |
-| `/api/agent/compare?a=&b=` | GET | Comparación de entidades |
-| `/api/system/status` | GET | Diagnóstico Gemini/ADK/caché |
+| Endpoint | Descripción |
+|----------|-------------|
+| `GET /api/agent/search?q=` | Investigación completa |
+| `POST /api/agent/analysis` | Informe IA |
+| `GET /api/agent/compare?a=&b=` | Comparar entidades |
+| `GET /api/system/status` | Diagnóstico sistema |
+| `POST /api/mcp` | MCP JSON-RPC |
+
+Referencia completa: [`docs/API.md`](docs/API.md)
+
+---
+
+## Casos de uso
+
+| Usuario | Caso |
+|---------|------|
+| Auditor / Contraloría | Priorizar entidades por score de riesgo |
+| Periodista | Investigar contratación en minutos |
+| Ciudadanía | Transparencia sobre entidades estatales |
+| Hackathon judges | Demo MCP + Gemini + datos reales |
+
+---
+
+## Documentación hackathon
+
+| Doc | Contenido |
+|-----|-----------|
+| [`docs/DEVPOST_SUBMISSION.md`](docs/DEVPOST_SUBMISSION.md) | Texto para Devpost + demo steps |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | Arquitectura 1 minuto |
+| [`docs/AGENT_DEPLOYMENT.md`](docs/AGENT_DEPLOYMENT.md) | Deploy Cloud Run |
+| [`docs/API.md`](docs/API.md) | Endpoints activos vs legacy |
+| [`docs/DEPLOYMENT_AUDIT.md`](docs/DEPLOYMENT_AUDIT.md) | Estado deploy Vercel |
+
+---
 
 ## Stack
 
 - **Frontend:** Next.js 16, React 19, Tailwind CSS 4
-- **IA:** Gemini 2.5 Flash vía ADK FastAPI + fallback derivado
-- **Datos:** APIs públicas Socrata (datos.gov.co)
-- **Motor de riesgo:** 10 reglas con explicabilidad formal
+- **IA:** Gemini 2.5 Flash, Google ADK, MCP
+- **Backend agente:** FastAPI + Python 3.11
+- **Datos:** APIs Socrata datos.gov.co
+- **Deploy:** Vercel + Docker / Cloud Run
+
+---
 
 ## Licencia
 
-MIT — ver `LICENSE`
+MIT — ver [`LICENSE`](LICENSE)

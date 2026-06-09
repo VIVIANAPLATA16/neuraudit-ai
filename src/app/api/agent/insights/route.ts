@@ -3,7 +3,10 @@ import { NextResponse } from "next/server"
 import type { SearchResult } from "@/lib/types"
 import { generateAnalysis, buildDerivedAnalysis } from "@/lib/analysis"
 
-/** @deprecated Usar POST /api/agent/analysis */
+/**
+ * @deprecated Usar POST /api/agent/analysis
+ * Mantenido para compatibilidad Agent Builder / clientes legacy.
+ */
 export async function POST(req: Request) {
   try {
     const body = await req.json()
@@ -15,11 +18,14 @@ export async function POST(req: Request) {
 
     try {
       const analysis = await generateAnalysis(result)
-      return NextResponse.json({
-        conclusionIA: analysis.conclusion,
-        analisisIA: analysis,
-        source: analysis.source,
-      })
+      return NextResponse.json(
+        {
+          conclusionIA: analysis.conclusion,
+          analisisIA: analysis,
+          source: analysis.source,
+        },
+        { headers: { Deprecation: "true", Link: '</api/agent/analysis>; rel="successor-version"' } }
+      )
     } catch {
       const analysis = buildDerivedAnalysis(result)
       return NextResponse.json({
