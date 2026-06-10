@@ -226,6 +226,9 @@ export default function BasesDatosPage() {
           throw new Error(payload?.detail || payload?.message || "No se pudo consultar API CSV");
         }
         const data = Array.isArray(payload?.rows) ? payload.rows : [];
+        if (payload?.proxyStatus === "degraded" && payload?.message) {
+          setErrorById((prev) => ({ ...prev, [db.id]: String(payload.message) }));
+        }
         const total = typeof payload?.total_rows === "number"
           ? payload.total_rows
           : typeof payload?.total_matches === "number"
