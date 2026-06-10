@@ -296,7 +296,7 @@ export default function NeurAuditAI() {
                   </h1>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                     Analyze public procurement data, detect anomalies and generate explainable risk
-                    assessments using Gemini, Elasticsearch and Google Cloud Agent Builder MCP.
+                    assessments orchestrated by ADK Agent, Elastic MCP and Gemini.
                   </p>
                   <HackathonTechStrip className="mt-6" />
                 </motion.div>

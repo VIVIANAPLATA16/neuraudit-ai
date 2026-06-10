@@ -66,18 +66,21 @@ function FactorBars({ riesgo }: { riesgo: RiskData }) {
 function ElasticTrackStrip({ insights }: { insights?: ElasticInsights | null }) {
   const searchOk = insights?.status === "ok"
   const hits = insights?.totalHits ?? 0
-  const elasticLive = searchOk && hits > 0
+  const viaMcp = insights?.retrievalMethod === "elastic-agent-builder-mcp"
+  const mcpTool = insights?.mcpTool
 
   const items = [
-    { label: "Agent Builder MCP Active", ok: true },
-    { label: "Elastic Search Enabled", ok: searchOk },
     {
-      label: elasticLive ? `Elastic Evidence · ${hits} hits` : "Elastic Evidence Retrieval",
-      ok: elasticLive,
+      label: viaMcp
+        ? `Elastic MCP · ${mcpTool || "search"}`
+        : searchOk
+          ? "Elasticsearch SDK"
+          : "Elastic unavailable",
+      ok: viaMcp || searchOk,
     },
     {
-      label: searchOk ? "Elasticsearch Connected" : "Elasticsearch (awaiting hits)",
-      ok: searchOk,
+      label: hits > 0 ? `Evidence · ${hits} hits` : "No evidence hits",
+      ok: hits > 0,
     },
   ]
 

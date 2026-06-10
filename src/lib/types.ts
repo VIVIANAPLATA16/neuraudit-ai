@@ -177,6 +177,8 @@ export interface ElasticInsights {
   topContratos: ElasticContractHit[]
   alertas: string[]
   valorTotalIndexado: number
+  retrievalMethod?: "elastic-agent-builder-mcp" | "elasticsearch-sdk"
+  mcpTool?: string | null
 }
 
 export interface InvestigationMeta {

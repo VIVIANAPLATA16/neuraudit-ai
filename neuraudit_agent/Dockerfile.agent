@@ -1,0 +1,15 @@
+FROM python:3.11-slim
+
+WORKDIR /app
+
+COPY neuraudit_agent/requirements-agent.txt /app/requirements-agent.txt
+RUN pip install --no-cache-dir -r /app/requirements-agent.txt
+
+COPY neuraudit_agent /app/neuraudit_agent
+
+ENV PYTHONPATH=/app
+ENV PORT=8080
+
+EXPOSE 8080
+
+CMD uvicorn neuraudit_agent.agent_service:app --host 0.0.0.0 --port ${PORT}

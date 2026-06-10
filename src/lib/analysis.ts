@@ -15,6 +15,7 @@ import {
   mapADKToAnalysis,
   mapADKToComparative,
 } from "./adk-client"
+import { invokeAdkAgentInvestigation } from "./adk-agent-client"
 
 export type { AnalystAnalysis, ComparativeAnalystAnalysis } from "./types"
 
@@ -250,6 +251,9 @@ ${ctx}`
 export async function generateAnalysis(result: SearchResult): Promise<AnalystAnalysis> {
   const enriched = enrichResult(result)
   const derived = buildDerivedAnalysis(enriched)
+
+  const adkAgent = await invokeAdkAgentInvestigation(enriched.query, enriched)
+  if (adkAgent) return adkAgent
 
   const adk = await invokeADKAnalysis(enriched.query, enriched)
   if (adk?.raw && adk.raw.resumenEjecutivo) {

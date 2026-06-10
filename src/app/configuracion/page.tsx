@@ -30,7 +30,7 @@ const SERVICE_META: {
   description: string
 }[] = [
   { key: "gemini", label: "Gemini IA", icon: Sparkles, description: "Análisis narrativo anticorrupción" },
-  { key: "mcp", label: "Google Agent Builder (MCP)", icon: Plug, description: "Integración JSON-RPC para agentes" },
+  { key: "mcp", label: "NeurAudit MCP Server", icon: Plug, description: "JSON-RPC /api/mcp (herramientas propias)" },
   { key: "elastic", label: "Elasticsearch", icon: Database, description: "Búsqueda híbrida SECOP en GCP" },
   { key: "datosGov", label: "Datos.gov.co", icon: Globe, description: "13 fuentes oficiales en tiempo real" },
   { key: "agentRuntime", label: "Agent Runtime (ADK)", icon: Bot, description: "Motor de agente en entorno de despliegue" },
@@ -154,8 +154,9 @@ export default function ConfiguracionPage() {
         <div className="glass rounded-2xl p-6 text-sm text-muted-foreground leading-relaxed">
           <p>
             NeurAudit AI integra <strong className="text-foreground">Gemini 2.5 Flash</strong>,{" "}
-            <strong className="text-foreground">Elasticsearch en GCP</strong>,{" "}
-            <strong className="text-foreground">MCP / Agent Builder</strong> y datos oficiales de Colombia.
+            <strong className="text-foreground">Elastic MCP</strong>,{" "}
+            <strong className="text-foreground">ADK Agent</strong> y datos oficiales de Colombia.
+            Verificación: <code className="text-xs">/api/system/compliance</code>
             La plataforma degrada con elegancia cuando un servicio no está disponible.
           </p>
         </div>

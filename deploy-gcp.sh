@@ -36,6 +36,7 @@ REGION="${GCP_REGION}"
 REPO="${ARTIFACT_REPO:-neuraudit}"
 SERVICE_NEXTJS="${SERVICE_NEXTJS:-neuraudit-web}"
 SERVICE_ADK="${SERVICE_ADK:-neuraudit-adk-analyze}"
+SERVICE_ADK_AGENT="${SERVICE_ADK_AGENT:-neuraudit-adk-agent}"
 IMAGE_TAG="${IMAGE_TAG:-$(git rev-parse --short HEAD 2>/dev/null || echo latest)}"
 
 # Validar secretos requeridos (sin imprimir valores)
@@ -43,6 +44,7 @@ missing=()
 [[ -z "${GEMINI_API_KEY:-}" && -z "${GOOGLE_API_KEY:-}" ]] && missing+=("GEMINI_API_KEY o GOOGLE_API_KEY")
 [[ -z "${ELASTIC_ENDPOINT:-}" ]] && missing+=("ELASTIC_ENDPOINT")
 [[ -z "${ELASTIC_API_KEY:-}" ]] && missing+=("ELASTIC_API_KEY")
+[[ -z "${ELASTIC_MCP_URL:-}" && -z "${ELASTIC_KIBANA_URL:-}" ]] && missing+=("ELASTIC_MCP_URL o ELASTIC_KIBANA_URL")
 
 if [[ ${#missing[@]} -gt 0 ]]; then
   echo "Error: faltan variables en .env.local:"
@@ -74,6 +76,7 @@ gcloud auth configure-docker "${REGION}-docker.pkg.dev" --quiet
 REGISTRY="${REGION}-docker.pkg.dev/${PROJECT_ID}/${REPO}"
 NEXTJS_IMAGE="${REGISTRY}/nextjs:${IMAGE_TAG}"
 ADK_IMAGE="${REGISTRY}/adk-analyze:${IMAGE_TAG}"
+ADK_AGENT_IMAGE="${REGISTRY}/adk-agent:${IMAGE_TAG}"
 
 echo "==> Build Next.js (standalone)..."
 docker build -t "$NEXTJS_IMAGE" -f Dockerfile .
@@ -81,9 +84,13 @@ docker build -t "$NEXTJS_IMAGE" -f Dockerfile .
 echo "==> Build ADK Analyze..."
 docker build -t "$ADK_IMAGE" -f neuraudit_agent/Dockerfile .
 
+echo "==> Build ADK Agent (Gemini + Elastic MCP)..."
+docker build -t "$ADK_AGENT_IMAGE" -f neuraudit_agent/Dockerfile.agent .
+
 echo "==> Push imágenes..."
 docker push "$NEXTJS_IMAGE"
 docker push "$ADK_IMAGE"
+docker push "$ADK_AGENT_IMAGE"
 
 echo "==> Deploy ADK Analyze (servicio interno)..."
 ADK_ENV="NEURAUDIT_GEMINI_MODEL=gemini-2.5-flash"
@@ -113,6 +120,8 @@ ENV_VARS="NEURAUDIT_GEMINI_MODEL=gemini-2.5-flash,NEURAUDIT_ADK_ANALYZE_URL=${AD
 [[ -n "${GOOGLE_API_KEY:-}" ]] && ENV_VARS="${ENV_VARS},GOOGLE_API_KEY=${GOOGLE_API_KEY}"
 ENV_VARS="${ENV_VARS},ELASTIC_ENDPOINT=${ELASTIC_ENDPOINT}"
 ENV_VARS="${ENV_VARS},ELASTIC_API_KEY=${ELASTIC_API_KEY}"
+[[ -n "${ELASTIC_MCP_URL:-}" ]] && ENV_VARS="${ENV_VARS},ELASTIC_MCP_URL=${ELASTIC_MCP_URL}"
+[[ -n "${ELASTIC_KIBANA_URL:-}" ]] && ENV_VARS="${ENV_VARS},ELASTIC_KIBANA_URL=${ELASTIC_KIBANA_URL}"
 
 gcloud run deploy "$SERVICE_NEXTJS" \
   --image="$NEXTJS_IMAGE" \
@@ -129,10 +138,47 @@ gcloud run deploy "$SERVICE_NEXTJS" \
   --quiet
 
 WEB_URL="$(gcloud run services describe "$SERVICE_NEXTJS" --region="$REGION" --format='value(status.url)')"
+
+echo "==> Deploy ADK Agent (Gemini + Elastic MCP + NeurAudit tools)..."
+NEURAUDIT_API_URL="${NEURAUDIT_API:-${WEB_URL}/api/agent/search}"
+ADK_AGENT_ENV="NEURAUDIT_GEMINI_MODEL=gemini-2.5-flash,NEURAUDIT_API=${NEURAUDIT_API_URL}"
+[[ -n "${GEMINI_API_KEY:-}" ]] && ADK_AGENT_ENV="${ADK_AGENT_ENV},GEMINI_API_KEY=${GEMINI_API_KEY}"
+[[ -n "${GOOGLE_API_KEY:-}" ]] && ADK_AGENT_ENV="${ADK_AGENT_ENV},GOOGLE_API_KEY=${GOOGLE_API_KEY}"
+[[ -n "${ELASTIC_MCP_URL:-}" ]] && ADK_AGENT_ENV="${ADK_AGENT_ENV},ELASTIC_MCP_URL=${ELASTIC_MCP_URL}"
+[[ -n "${ELASTIC_KIBANA_URL:-}" ]] && ADK_AGENT_ENV="${ADK_AGENT_ENV},ELASTIC_KIBANA_URL=${ELASTIC_KIBANA_URL}"
+[[ -n "${ELASTIC_API_KEY:-}" ]] && ADK_AGENT_ENV="${ADK_AGENT_ENV},ELASTIC_API_KEY=${ELASTIC_API_KEY}"
+
+gcloud run deploy "$SERVICE_ADK_AGENT" \
+  --image="$ADK_AGENT_IMAGE" \
+  --region="$REGION" \
+  --platform=managed \
+  --allow-unauthenticated \
+  --port=8080 \
+  --memory=2Gi \
+  --cpu=2 \
+  --timeout=300 \
+  --min-instances=0 \
+  --max-instances=5 \
+  --set-env-vars="$ADK_AGENT_ENV" \
+  --quiet
+
+ADK_AGENT_URL="$(gcloud run services describe "$SERVICE_ADK_AGENT" --region="$REGION" --format='value(status.url)')"
+
+echo "==> Wire Next.js → ADK Agent..."
+gcloud run services update "$SERVICE_NEXTJS" \
+  --region="$REGION" \
+  --update-env-vars="NEURAUDIT_ADK_AGENT_URL=${ADK_AGENT_URL},NEXT_PUBLIC_APP_URL=${WEB_URL}" \
+  --quiet
+
 echo ""
 echo "==> Despliegue completado"
-echo "    Web:  $WEB_URL"
-echo "    ADK:  $ADK_URL"
+echo "    Web:        $WEB_URL"
+echo "    ADK Agent:  $ADK_AGENT_URL"
+echo "    ADK Analyze:$ADK_URL"
+echo ""
+echo "Compliance check:"
+echo "  curl -s $WEB_URL/api/system/compliance | jq ."
+echo "  curl -s $ADK_AGENT_URL/health | jq ."
 echo ""
 echo "Siguiente paso (recomendado): actualizar NEXT_PUBLIC_APP_URL y re-desplegar:"
 echo "  gcloud run services update $SERVICE_NEXTJS --region=$REGION --set-env-vars=NEXT_PUBLIC_APP_URL=$WEB_URL"

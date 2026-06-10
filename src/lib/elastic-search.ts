@@ -87,6 +87,15 @@ export async function searchElasticSecop(
     valorTotalIndexado: 0,
   }
 
+  const { isElasticMcpConfigured, searchViaElasticMcp } = await import("./elastic-mcp-client")
+  if (isElasticMcpConfigured()) {
+    const mcpResult = await searchViaElasticMcp(query, searchTerms)
+    if (mcpResult?.status === "ok") return mcpResult
+    if (mcpResult?.status === "error") {
+      console.warn("[Elastic] MCP failed, falling back to SDK:", mcpResult.message)
+    }
+  }
+
   const client = getElasticClient()
   if (!client) {
     return {
@@ -137,6 +146,7 @@ export async function searchElasticSecop(
       topContratos,
       alertas,
       valorTotalIndexado,
+      retrievalMethod: "elasticsearch-sdk",
     }
   } catch (err) {
     console.error("[Elastic] search error:", err)

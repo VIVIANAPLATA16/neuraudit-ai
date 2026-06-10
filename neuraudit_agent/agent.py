@@ -3,6 +3,8 @@ import os
 from google.adk.agents.llm_agent import Agent
 from google.adk.tools import FunctionTool
 
+from neuraudit_agent.elastic_mcp import get_elastic_mcp_toolset, is_elastic_mcp_configured
+
 NEURAUDIT_API = os.environ.get(
     "NEURAUDIT_API",
     "http://127.0.0.1:3000/api/agent/search",
@@ -241,11 +243,26 @@ def generate_fiscal_report(query: str, include_recommendations: bool = True) -> 
 
 NEURAUDIT_GEMINI_MODEL = os.environ.get("NEURAUDIT_GEMINI_MODEL", "gemini-2.5-flash")
 
-root_agent = Agent(
-    model=NEURAUDIT_GEMINI_MODEL,
-    name="NeurAudit_AI",
-    description="Agente de inteligencia anticorrupción para contratos públicos colombianos. Analiza datos reales de SECOP I+II, CGR, Procuraduría, SGR Regalías y 13 fuentes simultáneas para detectar riesgos de corrupción.",
-    instruction="""Eres NeurAudit AI, el primer agente de inteligencia anticorrupción para contratación pública colombiana.
+
+def _build_agent_tools():
+    tools = [
+        FunctionTool(search_contracts),
+        FunctionTool(compare_entities),
+        FunctionTool(generate_fiscal_report),
+    ]
+    elastic_mcp = get_elastic_mcp_toolset()
+    if elastic_mcp is not None:
+        tools.append(elastic_mcp)
+    return tools
+
+
+_elastic_mcp_note = (
+    "4. Herramientas Elastic Agent Builder MCP — búsqueda semántica en índices Elasticsearch\n"
+    if is_elastic_mcp_configured()
+    else ""
+)
+
+_AGENT_INSTRUCTION = """Eres NeurAudit AI, el primer agente de inteligencia anticorrupción para contratación pública colombiana.
 
 Tu misión: proteger los recursos públicos colombianos usando inteligencia artificial y datos abiertos del Estado.
 
@@ -253,12 +270,13 @@ Tu misión: proteger los recursos públicos colombianos usando inteligencia arti
 1. search_contracts(query) — Busca en 13 fuentes simultáneas y retorna score de riesgo
 2. compare_entities(entity1, entity2, entity3) — Compara riesgo entre entidades
 3. generate_fiscal_report(query) — Genera expediente digital completo
-
+{elastic_mcp_note}
 ## REGLAS ABSOLUTAS
 1. SIEMPRE usa search_contracts antes de analizar cualquier entidad
-2. NUNCA inventes datos — todo debe venir de las herramientas
-3. Responde SIEMPRE en español
-4. Muestra el razonamiento paso a paso
+2. Usa herramientas Elastic MCP para búsqueda semántica cuando estén disponibles
+3. NUNCA inventes datos — todo debe venir de las herramientas
+4. Responde SIEMPRE en español
+5. Muestra el razonamiento paso a paso
 
 ## FORMATO DE RESPUESTA
 
@@ -288,10 +306,12 @@ Tu misión: proteger los recursos públicos colombianos usando inteligencia arti
 - "Investiga la UNGRD" → usa search_contracts("UNGRD") luego generate_fiscal_report("UNGRD")
 - "Compara UNGRD e ICBF" → usa compare_entities("UNGRD", "ICBF")
 - "Genera expediente para Contraloría sobre MinSalud" → usa generate_fiscal_report("MinSalud")
-""",
-    tools=[
-        FunctionTool(search_contracts),
-        FunctionTool(compare_entities),
-        FunctionTool(generate_fiscal_report),
-    ],
+"""
+
+root_agent = Agent(
+    model=NEURAUDIT_GEMINI_MODEL,
+    name="NeurAudit_AI",
+    description="Agente de inteligencia anticorrupción para contratos públicos colombianos. Analiza datos reales de SECOP I+II, CGR, Procuraduría, SGR Regalías y 13 fuentes simultáneas para detectar riesgos de corrupción.",
+    instruction=_AGENT_INSTRUCTION.format(elastic_mcp_note=_elastic_mcp_note),
+    tools=_build_agent_tools(),
 )
