@@ -18,7 +18,10 @@ export async function GET() {
 
   let searchOk = false
   try {
-    const origin = process.env.NEXT_PUBLIC_APP_URL || "http://127.0.0.1:3000"
+    const origin =
+      process.env.NEXT_PUBLIC_APP_URL ||
+      (process.env.VERCEL_URL ? `https://${process.env.VERCEL_URL}` : null) ||
+      "http://127.0.0.1:3000"
     const res = await fetch(`${origin}/api/agent/search?q=health`, {
       signal: AbortSignal.timeout(5000),
     }).catch(() => null)

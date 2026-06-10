@@ -12,14 +12,15 @@ import { addToHistory } from "@/lib/history"
 import { buildDerivedAnalysis } from "@/lib/analysis"
 import type { AnalystAnalysis } from "@/lib/types"
 import type { SearchResult } from "@/lib/types"
+import { HackathonTechStrip } from "@/components/hackathon-tech-strip"
 
 const DEMO_ENTITY = "ICBF"
 
-const quickExamples = [
-  { name: "UNGRD", label: "UNGRD" },
+const tryExampleInvestigations = [
   { name: "ICBF", label: "ICBF" },
-  { name: "Ministerio de Salud", label: "Min. Salud" },
-  { name: "Alcaldía de Bogotá", label: "Alcaldía Bogotá" },
+  { name: "Ministerio de Transporte", label: "Min. Transporte" },
+  { name: "Alcaldía de Medellín", label: "Alcaldía Medellín" },
+  { name: "Gobernación de Antioquia", label: "Gob. Antioquia" },
 ]
 
 type ViewState = "home" | "loading" | "results"
@@ -295,8 +296,9 @@ export default function NeurAuditAI() {
                   </h1>
                   <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
                     Analyze public procurement data, detect anomalies and generate explainable risk
-                    assessments using Gemini, Elastic MCP and Google Cloud Agent technologies.
+                    assessments using Gemini, Elasticsearch and Google Cloud Agent Builder MCP.
                   </p>
+                  <HackathonTechStrip className="mt-6" />
                 </motion.div>
 
                 {/* Search Box */}
@@ -340,15 +342,18 @@ export default function NeurAuditAI() {
                     </div>
                   </div>
 
-                  {/* Quick Examples */}
+                  {/* Try Example Investigations */}
                   <motion.div
                     initial={{ opacity: 0 }}
                     animate={{ opacity: 1 }}
                     transition={{ delay: 0.3 }}
-                    className="flex items-center justify-center gap-2 mt-6 flex-wrap"
+                    className="mt-8 space-y-3"
                   >
-                    <span className="text-sm text-muted-foreground mr-2">Ejemplos rápidos:</span>
-                    {quickExamples.map((example) => (
+                    <p className="text-center text-sm font-semibold text-foreground">
+                      Try Example Investigations
+                    </p>
+                    <div className="flex items-center justify-center gap-2 flex-wrap">
+                    {tryExampleInvestigations.map((example) => (
                       <button
                         key={example.name}
                         onClick={() => {
@@ -360,6 +365,7 @@ export default function NeurAuditAI() {
                         {example.label}
                       </button>
                     ))}
+                    </div>
                   </motion.div>
                 </motion.div>
               </div>
