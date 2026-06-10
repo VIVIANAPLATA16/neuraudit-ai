@@ -3,6 +3,48 @@
 import { useEffect, useMemo, useState } from "react";
 import { Database, RefreshCcw, Search } from "lucide-react";
 import { AppShell } from "@/components/app-shell";
+import { formatCOP } from "@/lib/utils";
+
+type CsvTableColumn = {
+  id: string;
+  label: string;
+  cellClassName?: string;
+  getValue: (row: Record<string, unknown>) => unknown;
+};
+
+const CSV_S3_TABLE_COLUMNS: CsvTableColumn[] = [
+  {
+    id: "id_contrato",
+    label: "ID Contrato",
+    getValue: (row) => row.id_contrato || row.proceso_de_compra,
+  },
+  {
+    id: "objeto_del_contrato",
+    label: "Objeto del Contrato",
+    cellClassName: "max-w-xs truncate",
+    getValue: (row) => row.objeto_del_contrato,
+  },
+  {
+    id: "valor_del_contrato",
+    label: "Valor del Contrato",
+    getValue: (row) => row.valor_del_contrato,
+  },
+  {
+    id: "proveedor_adjudicado",
+    label: "Proveedor",
+    getValue: (row) => row.proveedor_adjudicado,
+  },
+  {
+    id: "departamento",
+    label: "Departamento",
+    getValue: (row) => row.departamento,
+  },
+  {
+    id: "ciudad",
+    label: "Ciudad",
+    getValue: (row) => row.ciudad,
+  },
+];
 
 type DatabaseItem = {
   id: string;
@@ -269,7 +311,7 @@ export default function BasesDatosPage() {
     }
   };
 
-  const getColumns = (rows: Record<string, unknown>[]) => {
+  const getSoda2Columns = (rows: Record<string, unknown>[]) => {
     if (!rows.length) return [];
     return Object.keys(rows[0]).slice(0, 6);
   };
@@ -278,6 +320,22 @@ export default function BasesDatosPage() {
     if (value === null || value === undefined || value === "") return "—";
     const str = String(value);
     return str.length > 90 ? str.slice(0, 90) + "..." : str;
+  };
+
+  const formatCsvCurrency = (value: unknown) => {
+    if (value === null || value === undefined || value === "") return "—";
+    const num =
+      typeof value === "number"
+        ? value
+        : parseFloat(String(value).replace(/[^\d.-]/g, ""));
+    if (!Number.isFinite(num)) return formatCell(value);
+    return formatCOP(num);
+  };
+
+  const renderCsvCell = (column: CsvTableColumn, row: Record<string, unknown>) => {
+    const raw = column.getValue(row);
+    if (column.id === "valor_del_contrato") return formatCsvCurrency(raw);
+    return formatCell(raw);
   };
 
   const totalRegistros = BASES_DATOS.reduce((acc, db) => acc + (countById[db.id] || 0), 0);
@@ -453,21 +511,47 @@ export default function BasesDatosPage() {
                   <table className="w-full text-xs">
                     <thead>
                       <tr className="bg-muted/30 text-muted-foreground">
-                        {getColumns(rowsById[db.id] || []).map((col) => (
-                          <th key={col} className="text-left p-2 whitespace-nowrap font-medium">
-                            {col}
-                          </th>
-                        ))}
+                        {db.sourceType === "csvApi"
+                          ? CSV_S3_TABLE_COLUMNS.map((col) => (
+                              <th
+                                key={col.id}
+                                className="text-left p-2 whitespace-nowrap font-medium"
+                              >
+                                {col.label}
+                              </th>
+                            ))
+                          : getSoda2Columns(rowsById[db.id] || []).map((col) => (
+                              <th key={col} className="text-left p-2 whitespace-nowrap font-medium">
+                                {col}
+                              </th>
+                            ))}
                       </tr>
                     </thead>
                     <tbody>
                       {(rowsById[db.id] || []).map((row, idx) => (
                         <tr key={idx} className="border-t border-border/50">
-                          {getColumns(rowsById[db.id] || []).map((col) => (
-                            <td key={col} className="p-2 text-foreground align-top">
-                              {formatCell(row[col])}
-                            </td>
-                          ))}
+                          {db.sourceType === "csvApi"
+                            ? CSV_S3_TABLE_COLUMNS.map((col) => {
+                                const display = renderCsvCell(col, row);
+                                const fullText =
+                                  col.id === "objeto_del_contrato"
+                                    ? String(col.getValue(row) ?? "")
+                                    : undefined;
+                                return (
+                                  <td
+                                    key={col.id}
+                                    className={`p-2 text-foreground align-top ${col.cellClassName || ""}`}
+                                    title={fullText && fullText.length > 40 ? fullText : undefined}
+                                  >
+                                    {display}
+                                  </td>
+                                );
+                              })
+                            : getSoda2Columns(rowsById[db.id] || []).map((col) => (
+                                <td key={col} className="p-2 text-foreground align-top">
+                                  {formatCell(row[col])}
+                                </td>
+                              ))}
                         </tr>
                       ))}
                     </tbody>
