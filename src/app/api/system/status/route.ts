@@ -27,15 +27,15 @@ export async function GET() {
     searchOk = false
   }
 
+  const elasticConfigured = isElasticConfigured()
+
   return NextResponse.json({
     gemini: { connected: geminiKey, model: NEURAUDIT_GEMINI_MODEL },
     adk: {
       connected: adkHealth.connected,
-      analyzeUrl: process.env.NEURAUDIT_ADK_ANALYZE_URL || "http://127.0.0.1:8001/analyze",
       geminiConfigured: adkHealth.geminiConfigured,
       model: adkHealth.model,
       version: adkHealth.version,
-      geminiKeySource: adkHealth.geminiKeySource,
       error: adkError,
     },
     apis: {
@@ -43,11 +43,18 @@ export async function GET() {
       datosGov: "ok",
     },
     elastic: {
-      configured: isElasticConfigured(),
+      configured: elasticConfigured,
       index: "secop-contratos",
-      endpoint: process.env.ELASTIC_ENDPOINT ? "set" : "missing",
     },
     mcp: { status: "configured" },
+    services: {
+      gemini: geminiKey ? "operational" : "partial",
+      mcp: "operational",
+      elastic: elasticConfigured ? "operational" : "partial",
+      datosGov: "operational",
+      agentRuntime: adkHealth.connected ? "operational" : "partial",
+      investigation: "operational",
+    },
     cache: getCacheStats(),
     timestamp: new Date().toISOString(),
   })

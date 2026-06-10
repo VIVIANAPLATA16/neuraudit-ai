@@ -4,8 +4,9 @@ import Link from "next/link"
 import { motion } from "framer-motion"
 import { AlertTriangle, TrendingUp, FileText, Database, CheckCircle2, ExternalLink, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
-import { IntelligenceSections } from "@/components/intelligence-sections"
-import type { AnalystAnalysis, InterpretacionAnalisis, RiskData } from "@/lib/types"
+import { ExecutiveDashboard } from "@/components/executive-dashboard"
+import { AIAnalystPanel } from "@/components/ai-analyst-panel"
+import type { AnalystAnalysis, ElasticInsights, InterpretacionAnalisis, RiskData } from "@/lib/types"
 
 interface InvestigationResultsProps {
   entityName: string
@@ -22,6 +23,8 @@ interface InvestigationResultsProps {
   analisisIA?: AnalystAnalysis | null
   analisisLoading?: boolean
   detailsHref?: string
+  elasticInsights?: ElasticInsights | null
+  sourcesTotal?: number
   onGeneratePdf?: () => void
   pdfLoading?: boolean
 }
@@ -35,6 +38,8 @@ export function InvestigationResults({
   analisisIA,
   analisisLoading,
   detailsHref,
+  elasticInsights,
+  sourcesTotal,
   onGeneratePdf,
   pdfLoading,
 }: InvestigationResultsProps) {
@@ -214,13 +219,43 @@ export function InvestigationResults({
       </motion.div>
 
       {riesgo && (
-        <IntelligenceSections
-          riesgo={riesgo}
-          interpretacion={interpretacion}
-          analisisIA={analisisIA}
-          analisisLoading={analisisLoading}
-          delay={0.35}
-        />
+        <>
+          <ExecutiveDashboard
+            entityName={entityName}
+            riskScore={riskScore}
+            riesgo={riesgo}
+            interpretacion={interpretacion}
+            elasticInsights={elasticInsights}
+            sourcesTotal={sourcesTotal}
+            delay={0.35}
+          />
+          <AIAnalystPanel
+            analysis={analisisIA}
+            loading={analisisLoading}
+            executive
+            delay={0.4}
+          />
+          {interpretacion?.contratosDestacados && interpretacion.contratosDestacados.length > 0 && (
+            <motion.div
+              initial={{ opacity: 0, y: 20 }}
+              animate={{ opacity: 1, y: 0 }}
+              transition={{ delay: 0.42 }}
+              className="glass rounded-2xl p-6"
+            >
+              <h3 className="text-lg font-semibold text-foreground mb-4">Contratos Relacionados</h3>
+              <div className="space-y-3">
+                {interpretacion.contratosDestacados.slice(0, 4).map((c, i) => (
+                  <div key={i} className="p-3 rounded-xl bg-muted/30 border border-border text-sm">
+                    <p className="font-medium text-foreground">{c.proveedor}</p>
+                    <p className="text-muted-foreground text-xs mt-1">
+                      {c.valor} · {c.motivoRelevancia}
+                    </p>
+                  </div>
+                ))}
+              </div>
+            </motion.div>
+          )}
+        </>
       )}
 
       {/* Actions */}
@@ -243,7 +278,7 @@ export function InvestigationResults({
           className="px-6 py-3 rounded-xl glass border border-border text-foreground font-medium flex items-center gap-2 hover:bg-muted transition-colors"
         >
           <ExternalLink className="size-4" />
-          Ver Detalles Completos
+          Ver Expediente Ampliado
         </Link>
       </motion.div>
     </motion.div>

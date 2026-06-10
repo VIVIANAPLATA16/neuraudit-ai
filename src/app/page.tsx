@@ -13,6 +13,8 @@ import { buildDerivedAnalysis } from "@/lib/analysis"
 import type { AnalystAnalysis } from "@/lib/types"
 import type { SearchResult } from "@/lib/types"
 
+const DEMO_ENTITY = "ICBF"
+
 const quickExamples = [
   { name: "UNGRD", label: "UNGRD" },
   { name: "ICBF", label: "ICBF" },
@@ -36,6 +38,12 @@ function mapResultToDisplay(result: SearchResult) {
       { name: "SGR (Regalías)", checked: fuentes.sgr > 0 },
       { name: "Sanciones", checked: fuentes.sanciones > 0 },
       { name: "Datos Abiertos Colombia", checked: fuentes.total > 0 },
+      {
+        name: "Elasticsearch SECOP",
+        checked:
+          (result.elasticInsights?.totalHits ?? 0) > 0 ||
+          result.elasticInsights?.status === "ok",
+      },
     ],
   }
 }
@@ -201,6 +209,16 @@ export default function NeurAuditAI() {
     }
   }
 
+  const focusSearch = () => {
+    document.getElementById("search-input")?.scrollIntoView({ behavior: "smooth", block: "center" })
+    document.getElementById("search-input")?.focus()
+  }
+
+  const handleDemo = () => {
+    setSearchQuery(DEMO_ENTITY)
+    handleSearch(DEMO_ENTITY)
+  }
+
   const handleNewInvestigation = () => {
     stopStepTimer()
     setViewState("home")
@@ -242,15 +260,20 @@ export default function NeurAuditAI() {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <button className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground transition-colors">
-                    Ver Demo
+                  <button
+                    type="button"
+                    onClick={handleDemo}
+                    className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground glass border border-border transition-colors"
+                  >
+                    View Demo
                   </button>
                   <button
-                    onClick={() => document.getElementById("search-input")?.focus()}
+                    type="button"
+                    onClick={focusSearch}
                     className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
                   >
                     <Search className="size-4" />
-                    Investigar Entidad
+                    Start Investigation
                   </button>
                 </div>
               </header>
@@ -263,12 +286,16 @@ export default function NeurAuditAI() {
                   transition={{ delay: 0.1 }}
                   className="text-center max-w-3xl mx-auto mb-12"
                 >
+                  <p className="text-xs font-semibold uppercase tracking-widest text-primary mb-4">
+                    Google Cloud Rapid Agent Hackathon 2026 · Elastic Track
+                  </p>
                   <h1 className="text-4xl md:text-5xl font-bold text-foreground mb-6 leading-tight">
-                    Detecta riesgos de corrupción{" "}
-                    <span className="gradient-text">antes de que ocurra el daño fiscal</span>
+                    AI-Powered{" "}
+                    <span className="gradient-text">Anti-Corruption Intelligence</span>
                   </h1>
-                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto">
-                    NeurAudit analiza SECOP, Contraloría, Procuraduría, Regalías y múltiples fuentes públicas usando IA para identificar patrones de riesgo.
+                  <p className="text-lg text-muted-foreground max-w-2xl mx-auto leading-relaxed">
+                    Analyze public procurement data, detect anomalies and generate explainable risk
+                    assessments using Gemini, Elastic MCP and Google Cloud Agent technologies.
                   </p>
                 </motion.div>
 
@@ -386,6 +413,8 @@ export default function NeurAuditAI() {
                 interpretacion={searchResult?.interpretacion}
                 analisisIA={analisisIA}
                 analisisLoading={analisisLoading}
+                elasticInsights={searchResult?.elasticInsights}
+                sourcesTotal={searchResult?.fuentes?.total}
                 detailsHref={`/investigacion/${encodeURIComponent(entityName)}`}
                 onGeneratePdf={handleGeneratePdf}
                 pdfLoading={pdfLoading}

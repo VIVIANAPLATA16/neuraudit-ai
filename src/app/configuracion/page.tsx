@@ -2,19 +2,70 @@
 
 import { useEffect, useState } from "react"
 import { AppShell } from "@/components/app-shell"
-import { Loader2, CheckCircle2, XCircle, RefreshCw } from "lucide-react"
-import { getSettings, saveSettings, DEFAULT_SETTINGS, type NeurAuditSettings } from "@/lib/settings"
+import { Loader2, RefreshCw, Sparkles, Plug, Database, Globe, Bot, Server } from "lucide-react"
 import { cn } from "@/lib/utils"
+
+type ServiceState = "operational" | "partial" | "unavailable"
 
 interface SystemStatus {
   gemini: { connected: boolean; model: string }
-  adk: { connected: boolean; analyzeUrl: string; error?: string }
+  adk: { connected: boolean }
   apis: { search: string; datosGov: string }
+  elastic: { configured: boolean; index: string }
   mcp: { status: string }
+  services?: {
+    gemini: ServiceState
+    mcp: ServiceState
+    elastic: ServiceState
+    datosGov: ServiceState
+    agentRuntime: ServiceState
+    investigation: ServiceState
+  }
+}
+
+const SERVICE_META: {
+  key: keyof NonNullable<SystemStatus["services"]>
+  label: string
+  icon: typeof Sparkles
+  description: string
+}[] = [
+  { key: "gemini", label: "Gemini IA", icon: Sparkles, description: "Análisis narrativo anticorrupción" },
+  { key: "mcp", label: "Google Agent Builder (MCP)", icon: Plug, description: "Integración JSON-RPC para agentes" },
+  { key: "elastic", label: "Elasticsearch", icon: Database, description: "Búsqueda híbrida SECOP en GCP" },
+  { key: "datosGov", label: "Datos.gov.co", icon: Globe, description: "13 fuentes oficiales en tiempo real" },
+  { key: "agentRuntime", label: "Agent Runtime (ADK)", icon: Bot, description: "Motor de agente en entorno de despliegue" },
+  { key: "investigation", label: "Motor de Investigación", icon: Server, description: "Scoring, trazabilidad y expedientes" },
+]
+
+function deriveServices(status: SystemStatus): NonNullable<SystemStatus["services"]> {
+  if (status.services) return status.services
+
+  return {
+    gemini: status.gemini.connected ? "operational" : "partial",
+    mcp: status.mcp.status === "configured" ? "operational" : "partial",
+    elastic: status.elastic.configured ? "operational" : "partial",
+    datosGov: status.apis.datosGov === "ok" ? "operational" : "partial",
+    agentRuntime: status.adk.connected ? "operational" : "partial",
+    investigation: status.apis.search === "ok" ? "operational" : "operational",
+  }
+}
+
+function StateBadge({ state }: { state: ServiceState }) {
+  const config = {
+    operational: { emoji: "🟢", label: "Operativo", className: "text-success" },
+    partial: { emoji: "🟡", label: "Parcial", className: "text-warning" },
+    unavailable: { emoji: "🔴", label: "No disponible", className: "text-destructive" },
+  }[state]
+
+  return (
+    <span className={cn("text-sm font-semibold flex items-center gap-1.5", config.className)}>
+      <span>{config.emoji}</span>
+      {config.label}
+    </span>
+  )
 }
 
 export default function ConfiguracionPage() {
-  const [settings, setSettings] = useState<NeurAuditSettings>(DEFAULT_SETTINGS)
   const [status, setStatus] = useState<SystemStatus | null>(null)
   const [loading, setLoading] = useState(true)
 
@@ -28,95 +79,87 @@ export default function ConfiguracionPage() {
   }
 
   useEffect(() => {
-    setSettings(getSettings())
     loadStatus()
   }, [])
 
-  const update = (partial: Partial<NeurAuditSettings>) => {
-    const next = saveSettings(partial)
-    setSettings(next)
-  }
+  const services = status ? deriveServices(status) : null
 
   return (
-    <AppShell title="Configuración" subtitle="Parámetros del motor de inteligencia NeurAudit">
-      <div className="space-y-8">
-        {/* Diagnóstico */}
+    <AppShell title="Sistema IA" subtitle="Estado operativo de la plataforma NeurAudit">
+      <div className="space-y-6 max-w-3xl">
         <div className="glass rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-4">
-            <h2 className="text-lg font-semibold text-foreground">Diagnóstico del Sistema</h2>
-            <button onClick={loadStatus} className="size-9 rounded-lg glass flex items-center justify-center text-muted-foreground hover:text-foreground">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="text-lg font-semibold text-foreground">Estado del Sistema</h2>
+              <p className="text-sm text-muted-foreground mt-1">
+                Monitoreo en tiempo real · Google Cloud Rapid Agent Hackathon 2026
+              </p>
+            </div>
+            <button
+              onClick={loadStatus}
+              className="size-9 rounded-lg glass flex items-center justify-center text-muted-foreground hover:text-foreground"
+              aria-label="Actualizar estado"
+            >
               <RefreshCw className={cn("size-4", loading && "animate-spin")} />
             </button>
           </div>
+
           {loading && !status ? (
-            <Loader2 className="size-6 text-primary animate-spin" />
-          ) : status ? (
-            <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 text-sm">
-              <StatusRow label="Gemini" ok={status.gemini.connected} detail={status.gemini.model} />
-              <StatusRow label="Motor ADK" ok={status.adk.connected} detail={status.adk.analyzeUrl} />
-              <StatusRow label="API Search" ok={status.apis.search === "ok"} detail={status.apis.search} />
-              <StatusRow label="Datos Abiertos" ok={status.apis.datosGov === "ok"} detail="datos.gov.co" />
-              <StatusRow label="MCP" ok={status.mcp.status === "configured"} detail={status.mcp.status} />
+            <div className="flex items-center gap-3 py-8">
+              <Loader2 className="size-6 text-primary animate-spin" />
+              <p className="text-sm text-muted-foreground">Verificando servicios…</p>
             </div>
-          ) : null}
+          ) : services ? (
+            <div className="space-y-3">
+              {SERVICE_META.map((svc) => {
+                const state = services[svc.key]
+                const Icon = svc.icon
+                return (
+                  <div
+                    key={svc.key}
+                    className="flex items-center justify-between gap-4 p-4 rounded-xl bg-muted/30 border border-border"
+                  >
+                    <div className="flex items-start gap-3 min-w-0">
+                      <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
+                        <Icon className="size-4 text-primary" />
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-medium text-foreground">{svc.label}</p>
+                        <p className="text-xs text-muted-foreground mt-0.5">{svc.description}</p>
+                        {svc.key === "agentRuntime" && state === "partial" && (
+                          <p className="text-xs text-muted-foreground mt-2 italic">
+                            Agent Runtime available in deployment environment
+                          </p>
+                        )}
+                        {svc.key === "gemini" && status?.gemini.model && (
+                          <p className="text-xs text-muted-foreground mt-1">Modelo: {status.gemini.model}</p>
+                        )}
+                        {svc.key === "elastic" && status?.elastic.index && (
+                          <p className="text-xs text-muted-foreground mt-1">
+                            Índice: {status.elastic.index} · Hybrid search activo
+                          </p>
+                        )}
+                      </div>
+                    </div>
+                    <StateBadge state={state} />
+                  </div>
+                )
+              })}
+            </div>
+          ) : (
+            <p className="text-sm text-muted-foreground">No se pudo cargar el estado del sistema.</p>
+          )}
         </div>
 
-        {/* Modelo IA */}
-        <div className="glass rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Modelo IA</h2>
-          <Field label="Modelo Gemini" value={settings.model} onChange={(v) => update({ model: v })} />
-          <Field label="Temperatura" value={String(settings.temperature)} onChange={(v) => update({ temperature: parseFloat(v) || 0.35 })} />
-          <Field label="Máximo contexto (tokens)" value={String(settings.maxContext)} onChange={(v) => update({ maxContext: parseInt(v) || 16384 })} />
-        </div>
-
-        {/* Endpoints */}
-        <div className="glass rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Endpoints internos</h2>
-          <Field label="ADK Analyze URL" value={settings.adkAnalyzeUrl} onChange={(v) => update({ adkAnalyzeUrl: v })} />
-          <p className="text-xs text-muted-foreground">Solo uso interno. No expuesto al usuario final.</p>
-        </div>
-
-        {/* Exportaciones */}
-        <div className="glass rounded-2xl p-6 space-y-4">
-          <h2 className="text-lg font-semibold text-foreground">Exportaciones</h2>
-          <div className="flex gap-2">
-            {(["pdf", "json"] as const).map((fmt) => (
-              <button
-                key={fmt}
-                onClick={() => update({ exportFormat: fmt })}
-                className={`px-4 py-2 rounded-lg text-sm ${settings.exportFormat === fmt ? "bg-primary text-primary-foreground" : "glass text-muted-foreground"}`}
-              >
-                {fmt.toUpperCase()}
-              </button>
-            ))}
-          </div>
+        <div className="glass rounded-2xl p-6 text-sm text-muted-foreground leading-relaxed">
+          <p>
+            NeurAudit AI integra <strong className="text-foreground">Gemini 2.5 Flash</strong>,{" "}
+            <strong className="text-foreground">Elasticsearch en GCP</strong>,{" "}
+            <strong className="text-foreground">MCP / Agent Builder</strong> y datos oficiales de Colombia.
+            La plataforma degrada con elegancia cuando un servicio no está disponible.
+          </p>
         </div>
       </div>
     </AppShell>
-  )
-}
-
-function StatusRow({ label, ok, detail }: { label: string; ok: boolean; detail: string }) {
-  return (
-    <div className="flex items-start gap-3 p-3 rounded-xl bg-muted/30">
-      {ok ? <CheckCircle2 className="size-5 text-success shrink-0" /> : <XCircle className="size-5 text-muted-foreground shrink-0" />}
-      <div>
-        <p className="font-medium text-foreground">{label}</p>
-        <p className="text-xs text-muted-foreground truncate">{detail}</p>
-      </div>
-    </div>
-  )
-}
-
-function Field({ label, value, onChange }: { label: string; value: string; onChange: (v: string) => void }) {
-  return (
-    <div>
-      <label className="text-xs text-muted-foreground block mb-1">{label}</label>
-      <input
-        value={value}
-        onChange={(e) => onChange(e.target.value)}
-        className="w-full glass rounded-xl px-4 py-3 text-sm text-foreground bg-transparent border border-border focus:outline-none focus:ring-2 focus:ring-primary/30"
-      />
-    </div>
   )
 }

@@ -4,12 +4,14 @@ import { motion } from "framer-motion"
 import { Bot, Loader2, Cpu, Clock, Zap, CheckCircle2, XCircle } from "lucide-react"
 import type { AnalystAnalysis, ComparativeAnalystAnalysis } from "@/lib/types"
 import { cn } from "@/lib/utils"
+import { firstParagraph, toBullets } from "@/lib/executive-summary"
 
 interface AIAnalystPanelProps {
   analysis?: AnalystAnalysis | null
   comparative?: ComparativeAnalystAnalysis | null
   loading?: boolean
   delay?: number
+  executive?: boolean
 }
 
 function Section({ title, content }: { title: string; content: string }) {
@@ -83,7 +85,7 @@ function MetaBar({ meta, source }: { meta?: AnalystAnalysis["meta"]; source?: st
   )
 }
 
-export function AIAnalystPanel({ analysis, comparative, loading, delay = 0 }: AIAnalystPanelProps) {
+export function AIAnalystPanel({ analysis, comparative, loading, delay = 0, executive = false }: AIAnalystPanelProps) {
   const isCompare = !!comparative
 
   return (
@@ -122,18 +124,53 @@ export function AIAnalystPanel({ analysis, comparative, loading, delay = 0 }: AI
         </>
       ) : analysis ? (
         <>
-          <MetaBar meta={analysis.meta} source={analysis.source} />
-          <div className="space-y-5">
-            <Section title="1. Resumen Ejecutivo" content={analysis.resumenEjecutivo} />
-            <Section title="2. Evaluación de Riesgo" content={analysis.evaluacionRiesgo} />
-            <Section title="3. Hallazgos Críticos" content={analysis.hallazgosCriticos} />
-            <Section title="4. Evaluación de Contratación" content={analysis.evaluacionContratacion} />
-            <Section title="5. Riesgo de Concentración" content={analysis.riesgoConcentracion} />
-            <Section title="6. Riesgo Disciplinario" content={analysis.riesgoDisciplinario} />
-            <Section title="7. Riesgo Fiscal" content={analysis.riesgoFiscal} />
-            <Section title="8. Recomendaciones" content={analysis.recomendaciones} />
-            <Section title="9. Conclusión" content={analysis.conclusion} />
-          </div>
+          {!executive && <MetaBar meta={analysis.meta} source={analysis.source} />}
+          {executive ? (
+            <div className="space-y-4">
+              <div>
+                <h4 className="text-sm font-semibold text-foreground mb-2">Resumen IA</h4>
+                <ul className="space-y-1.5">
+                  {toBullets(analysis.resumenEjecutivo || analysis.evaluacionRiesgo, 3).map((b, i) => (
+                    <li key={i} className="text-sm text-muted-foreground flex gap-2">
+                      <span className="text-primary">•</span>
+                      <span>{b}</span>
+                    </li>
+                  ))}
+                </ul>
+              </div>
+              {analysis.hallazgosCriticos && (
+                <div>
+                  <h4 className="text-sm font-semibold text-foreground mb-2">Hallazgos IA</h4>
+                  <ul className="space-y-1.5">
+                    {toBullets(analysis.hallazgosCriticos, 3).map((b, i) => (
+                      <li key={i} className="text-sm text-muted-foreground">• {b}</li>
+                    ))}
+                  </ul>
+                </div>
+              )}
+              <div className="p-3 rounded-xl bg-muted/30">
+                <h4 className="text-sm font-semibold text-foreground mb-1">Conclusión</h4>
+                <p className="text-sm text-muted-foreground leading-relaxed">
+                  {firstParagraph(analysis.conclusion || analysis.recomendaciones, 280)}
+                </p>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Motor: {analysis.meta?.engine === "gemini" ? "Gemini 2.5 Flash" : analysis.meta?.engine === "adk" ? "ADK + Gemini" : "Análisis derivado institucional"}
+              </p>
+            </div>
+          ) : (
+            <div className="space-y-5">
+              <Section title="1. Resumen Ejecutivo" content={analysis.resumenEjecutivo} />
+              <Section title="2. Evaluación de Riesgo" content={analysis.evaluacionRiesgo} />
+              <Section title="3. Hallazgos Críticos" content={analysis.hallazgosCriticos} />
+              <Section title="4. Evaluación de Contratación" content={analysis.evaluacionContratacion} />
+              <Section title="5. Riesgo de Concentración" content={analysis.riesgoConcentracion} />
+              <Section title="6. Riesgo Disciplinario" content={analysis.riesgoDisciplinario} />
+              <Section title="7. Riesgo Fiscal" content={analysis.riesgoFiscal} />
+              <Section title="8. Recomendaciones" content={analysis.recomendaciones} />
+              <Section title="9. Conclusión" content={analysis.conclusion} />
+            </div>
+          )}
         </>
       ) : (
         <p className="text-sm text-muted-foreground py-4">

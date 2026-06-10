@@ -20,7 +20,7 @@ export function Sidebar({ onNewInvestigation }: SidebarProps) {
     { icon: GitCompare, label: "Comparar Entidades", href: "/comparar" },
     { icon: History, label: "Historial", href: "/historial" },
     { icon: Database, label: "Bases de Datos", href: "/bases-datos" },
-    { icon: Settings, label: "Configuración", href: "/configuracion" },
+    { icon: Settings, label: "Sistema IA", href: "/configuracion" },
   ]
 
   return (
