@@ -167,8 +167,8 @@ const BASES_DATOS: DatabaseItem[] = [
     nombre: "API CSV S3 - Contratos Electrónicos (AWS)",
     descripcion: "API FastAPI desplegada en AWS Lambda para consultar CSV en S3 (preview + filtro).",
     estado: "Activa",
-    fuente: "AWS API Gateway + S3",
-    apiSoda2: "https://pqcu3eipqg.execute-api.us-east-1.amazonaws.com",
+    fuente: "NeurAudit Proxy → AWS API Gateway + S3",
+    apiSoda2: "/api/csv-aws",
     datasetId: "api3-csv-s3",
     sourceType: "csvApi",
     filterColumn: "nombre_entidad",
@@ -209,12 +209,12 @@ export default function BasesDatosPage() {
     try {
       if (db.sourceType === "csvApi") {
         const base = db.apiSoda2.replace(/\/$/, "");
-        let url = base + "/csv/preview?limit=12";
+        let url = base + "/preview?limit=12";
         if (query) {
           const col = selectedFilterColumnById[db.id] || db.filterColumn || "entidad";
           url =
             base +
-            "/csv/filter?column=" +
+            "/filter?column=" +
             encodeURIComponent(col) +
             "&value=" +
             encodeURIComponent(query) +
