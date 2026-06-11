@@ -11,6 +11,32 @@
 
 set -euo pipefail
 
+resolve_gcloud() {
+  local cand
+  for cand in \
+    "${GCLOUD_BIN:-}" \
+    "$(command -v gcloud 2>/dev/null || true)" \
+    "${HOME}/google-cloud-sdk/bin/gcloud" \
+    "/usr/lib/google-cloud-sdk/bin/gcloud" \
+    "/usr/bin/gcloud" \
+    "/snap/bin/gcloud"; do
+    if [[ -n "$cand" && -x "$cand" ]]; then
+      echo "$cand"
+      return 0
+    fi
+  done
+  return 1
+}
+
+GCLOUD="$(resolve_gcloud)" || {
+  echo "Error: gcloud no encontrado."
+  echo "  Instalar: sudo apt install google-cloud-cli"
+  echo "  O exportar: GCLOUD_BIN=/usr/lib/google-cloud-sdk/bin/gcloud"
+  exit 1
+}
+echo "==> gcloud: $GCLOUD"
+gcloud() { "$GCLOUD" "$@"; }
+
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 cd "$SCRIPT_DIR"
 
