@@ -15,8 +15,11 @@ const STEPS = [
   { id: "gemini", label: "Agente Gemini procesando hallazgos...", icon: Bot },
 ]
 
+const TYPING_DOT_DELAYS_MS = [0, 150, 300] as const
+
 export function AITimeline({ currentStep }: AITimelineProps) {
   const activeIndex = Math.min(currentStep, STEPS.length - 1)
+  const allStepsComplete = currentStep >= STEPS.length
 
   return (
     <motion.div
@@ -85,6 +88,42 @@ export function AITimeline({ currentStep }: AITimelineProps) {
           )
         })}
       </div>
+
+      {allStepsComplete && (
+        <motion.div
+          initial={{ opacity: 0, y: 12 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.35, ease: "easeOut" }}
+          className="mt-6 glass rounded-xl p-4 border border-primary/20 flex items-center gap-3"
+        >
+          <Loader2
+            className="size-5 shrink-0 animate-spin"
+            style={{ color: "#a855f7" }}
+            aria-hidden
+          />
+          <div className="flex flex-1 items-center gap-2 min-w-0">
+            <p className="text-sm text-foreground animate-pulse">
+              Generando análisis de inteligencia...
+            </p>
+            <div className="flex items-end gap-1 h-4 shrink-0" aria-hidden>
+              {TYPING_DOT_DELAYS_MS.map((delayMs) => (
+                <motion.span
+                  key={delayMs}
+                  className="size-1.5 rounded-full"
+                  style={{ backgroundColor: "#a855f7" }}
+                  animate={{ y: [0, -5, 0] }}
+                  transition={{
+                    duration: 0.5,
+                    repeat: Infinity,
+                    delay: delayMs / 1000,
+                    ease: "easeInOut",
+                  }}
+                />
+              ))}
+            </div>
+          </div>
+        </motion.div>
+      )}
     </motion.div>
   )
 }
