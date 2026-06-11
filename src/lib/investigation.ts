@@ -13,6 +13,21 @@ import {
   buildElasticTrace,
 } from "./elastic-search"
 
+/** Per-request timeout for datos.gov.co fetches (see datos-fetcher.ts). */
+export const DATOS_GOV_FETCH_TIMEOUT_MS = 30_000
+
+/** Wall-clock budget for full investigation (Cloud Run / serverless). */
+export const INVESTIGATION_WALL_CLOCK_MS = 58_000
+
+function investigationTimeBudget(): Promise<never> {
+  return new Promise((_, reject) => {
+    setTimeout(
+      () => reject(new Error(`Investigation exceeded ${INVESTIGATION_WALL_CLOCK_MS}ms`)),
+      INVESTIGATION_WALL_CLOCK_MS
+    )
+  })
+}
+
 interface SourceConfig {
   id: string
   name: string
@@ -132,7 +147,7 @@ function buildInvestigationMeta(
   }
 }
 
-export async function runInvestigation(query: string) {
+async function runInvestigationCore(query: string) {
   const start = Date.now()
   const variants = normalizeSearchTerm(query)
   const concurrency = getFetchConcurrency()
@@ -142,9 +157,31 @@ export async function runInvestigation(query: string) {
     return fetchPaginatedSource(cfg.id, cfg.name, cfg.dataset, cfg.baseUrl, whereClause)
   })
 
+  const elasticTimeout = Math.min(8_000, DATOS_GOV_FETCH_TIMEOUT_MS)
+  const elasticPromise = Promise.race([
+    searchElasticSecop(query, variants),
+    new Promise<Awaited<ReturnType<typeof searchElasticSecop>>>((resolve) =>
+      setTimeout(
+        () =>
+          resolve({
+            status: "skipped",
+            index: "secop-contratos",
+            query,
+            totalHits: 0,
+            durationMs: elasticTimeout,
+            topContratos: [],
+            alertas: [],
+            valorTotalIndexado: 0,
+            message: "Elastic skipped: time budget",
+          }),
+        elasticTimeout
+      )
+    ),
+  ])
+
   const [results, elasticInsights] = await Promise.all([
     runWithConcurrency(tasks, concurrency),
-    searchElasticSecop(query, variants),
+    elasticPromise,
   ])
 
   const byId = Object.fromEntries(SOURCE_CONFIGS.map((cfg, i) => [cfg.id, results[i]]))
@@ -239,4 +276,8 @@ export async function runInvestigation(query: string) {
       interpretacion,
     }) as unknown as Record<string, unknown>,
   }
+}
+
+export async function runInvestigation(query: string) {
+  return Promise.race([runInvestigationCore(query), investigationTimeBudget()])
 }

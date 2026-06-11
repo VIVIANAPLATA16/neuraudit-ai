@@ -91,7 +91,7 @@ export default function NeurAuditAI() {
 
     try {
       const controller = new AbortController()
-      const timeout = setTimeout(() => controller.abort(), 120000)
+      const timeout = setTimeout(() => controller.abort(), 60000)
 
       const response = await fetch(
         `/api/agent/search?q=${encodeURIComponent(term)}`,
@@ -156,7 +156,7 @@ export default function NeurAuditAI() {
       stopStepTimer()
       if (err instanceof DOMException && err.name === "AbortError") {
         setError(
-          "La búsqueda excedió el tiempo límite (120s). Intente de nuevo; si ya buscó esta entidad, la caché acelerará la respuesta."
+          "La búsqueda excedió el tiempo límite (60s). Intente de nuevo; si ya buscó esta entidad, la caché acelerará la respuesta."
         )
       } else if (err instanceof Error && err.message) {
         setError(err.message)

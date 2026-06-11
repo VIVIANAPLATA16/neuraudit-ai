@@ -1,4 +1,4 @@
-export const maxDuration = 300
+export const maxDuration = 60
 export const dynamic = "force-dynamic";
 import { NextResponse } from "next/server";
 
@@ -10,7 +10,7 @@ export async function GET(req: Request) {
   const origin = new URL(req.url).origin;
   const res = await fetch(
     `${origin}/api/agent/search?q=${encodeURIComponent(query)}`,
-    { signal: AbortSignal.timeout(60000), cache: "no-store" }
+    { signal: AbortSignal.timeout(30000), cache: "no-store" }
   );
 
   if (!res.ok) {

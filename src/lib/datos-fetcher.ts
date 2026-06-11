@@ -14,7 +14,8 @@ export interface SourceFetchResult {
 
 const PAGE_SIZE = 500
 const MAX_RECORDS = 10_000
-const FETCH_TIMEOUT_MS = 20_000
+/** Sync with investigation.ts DATOS_GOV_FETCH_TIMEOUT_MS */
+const FETCH_TIMEOUT_MS = 30_000
 const MAX_RETRIES = 3
 const RETRY_BASE_MS = 800
 
