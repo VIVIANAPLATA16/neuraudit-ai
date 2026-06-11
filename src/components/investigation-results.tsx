@@ -6,7 +6,8 @@ import { AlertTriangle, TrendingUp, FileText, Database, CheckCircle2, ExternalLi
 import { cn } from "@/lib/utils"
 import { ExecutiveDashboard } from "@/components/executive-dashboard"
 import { AIAnalystPanel } from "@/components/ai-analyst-panel"
-import type { AnalystAnalysis, ElasticInsights, InterpretacionAnalisis, RiskData } from "@/lib/types"
+import { RiskDashboard } from "@/components/risk-dashboard"
+import type { AnalystAnalysis, ElasticInsights, InterpretacionAnalisis, RiskData, SourcesData } from "@/lib/types"
 
 interface InvestigationResultsProps {
   entityName: string
@@ -19,6 +20,7 @@ interface InvestigationResultsProps {
     sources: { name: string; checked: boolean }[]
   }
   riesgo?: RiskData
+  fuentes?: SourcesData
   interpretacion?: InterpretacionAnalisis | null
   analisisIA?: AnalystAnalysis | null
   analisisLoading?: boolean
@@ -34,6 +36,7 @@ export function InvestigationResults({
   riskScore,
   data,
   riesgo,
+  fuentes,
   interpretacion,
   analisisIA,
   analisisLoading,
@@ -114,6 +117,10 @@ export function InvestigationResults({
           </div>
         </div>
       </motion.div>
+
+      {riesgo && (
+        <RiskDashboard riesgo={riesgo} fuentes={fuentes} />
+      )}
 
       {/* Alerts Section */}
       <motion.div

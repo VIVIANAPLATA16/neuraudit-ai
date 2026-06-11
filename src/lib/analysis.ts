@@ -31,16 +31,9 @@ const DEEP_SECTIONS = [
   "conclusion",
 ] as const
 
-function padSection(text: string, minWords: number): string {
-  const words = text.split(/\s+/).filter(Boolean)
-  if (words.length >= minWords) return text
-  const padding =
-    " Este apartado debe interpretarse en el contexto del marco normativo colombiano (Ley 80/1993, Ley 1474/2011, Decreto 1082/2015) y requiere validación documental por parte del auditor responsable."
-  let out = text
-  while (out.split(/\s+/).filter(Boolean).length < minWords) {
-    out += padding
-  }
-  return out
+function padSection(text: string, _minWords?: number): string {
+  if (!text?.trim()) return text
+  return text.trim() + " Este análisis se basa en datos oficiales colombianos y debe validarse con el expediente documental completo."
 }
 
 function enrichResult(result: SearchResult): SearchResult {
@@ -138,11 +131,26 @@ export function buildDerivedAnalysis(result: SearchResult): AnalystAnalysis {
   return {
     resumenEjecutivo: padSection(resumenBase, 500),
     evaluacionRiesgo: padSection(evalRiesgo, 500),
-    hallazgosCriticos: padSection(hallazgosText || "Sin hallazgos críticos adicionales.", 500),
-    evaluacionContratacion: padSection(evalContratacion, 500),
-    riesgoConcentracion: padSection(riesgoConc, 300),
-    riesgoDisciplinario: padSection(riesgoDisc, 300),
-    riesgoFiscal: padSection(riesgoFisc, 300),
+    hallazgosCriticos: padSection(
+      hallazgosText?.trim() || "No se identificaron hallazgos críticos adicionales en las fuentes consultadas.",
+      500
+    ),
+    evaluacionContratacion: padSection(
+      evalContratacion?.trim() || "Sin datos suficientes para evaluar modalidades de contratación.",
+      500
+    ),
+    riesgoConcentracion: padSection(
+      riesgoConc?.trim() || "No se detectó concentración significativa en proveedores.",
+      300
+    ),
+    riesgoDisciplinario: padSection(
+      riesgoDisc?.trim() || "Sin registros disciplinarios en Procuraduría para esta entidad.",
+      300
+    ),
+    riesgoFiscal: padSection(
+      riesgoFisc?.trim() || "Sin antecedentes fiscales relevantes en Contraloría.",
+      300
+    ),
     recomendaciones: padSection(recs || "Monitoreo preventivo.", 500),
     conclusion: padSection(conclusion, 500),
     riesgosRelevantes: padSection(evalRiesgo, 300),

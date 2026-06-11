@@ -260,23 +260,6 @@ export default function NeurAuditAI() {
                   <span className="text-muted-foreground text-sm">Inteligencia Anticorrupción para Colombia</span>
                 </div>
 
-                <div className="flex items-center gap-3">
-                  <button
-                    type="button"
-                    onClick={handleDemo}
-                    className="px-4 py-2 rounded-lg text-sm text-muted-foreground hover:text-foreground glass border border-border transition-colors"
-                  >
-                    View Demo
-                  </button>
-                  <button
-                    type="button"
-                    onClick={focusSearch}
-                    className="px-4 py-2 rounded-lg bg-primary text-primary-foreground text-sm font-medium hover:bg-primary/90 transition-colors flex items-center gap-2"
-                  >
-                    <Search className="size-4" />
-                    Start Investigation
-                  </button>
-                </div>
               </header>
 
               {/* Hero */}
@@ -416,6 +399,7 @@ export default function NeurAuditAI() {
                 riskScore={riskScore}
                 data={resultData}
                 riesgo={searchResult?.riesgo}
+                fuentes={searchResult?.fuentes}
                 interpretacion={searchResult?.interpretacion}
                 analisisIA={analisisIA}
                 analisisLoading={analisisLoading}

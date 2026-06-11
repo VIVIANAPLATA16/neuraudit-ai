@@ -1,166 +1,215 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { motion } from "framer-motion"
+import {
+  Shield,
+  Bot,
+  FileText,
+  Building2,
+  Scale,
+  Landmark,
+  MapPin,
+  Sparkles,
+  Plug,
+  Database,
+  Cloud,
+} from "lucide-react"
 import { AppShell } from "@/components/app-shell"
-import { Loader2, RefreshCw, Sparkles, Plug, Database, Globe, Bot, Server } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-type ServiceState = "operational" | "partial" | "unavailable"
-
-interface SystemStatus {
-  gemini: { connected: boolean; model: string }
-  adk: { connected: boolean }
-  apis: { search: string; datosGov: string }
-  elastic: { configured: boolean; index: string }
-  mcp: { status: string }
-  services?: {
-    gemini: ServiceState
-    mcp: ServiceState
-    elastic: ServiceState
-    datosGov: ServiceState
-    agentRuntime: ServiceState
-    investigation: ServiceState
-  }
+const stagger = {
+  hidden: { opacity: 0 },
+  show: {
+    opacity: 1,
+    transition: { staggerChildren: 0.1 },
+  },
 }
 
-const SERVICE_META: {
-  key: keyof NonNullable<SystemStatus["services"]>
-  label: string
-  icon: typeof Sparkles
-  description: string
-}[] = [
-  { key: "gemini", label: "Gemini IA", icon: Sparkles, description: "Análisis narrativo anticorrupción" },
-  { key: "mcp", label: "NeurAudit MCP Server", icon: Plug, description: "JSON-RPC /api/mcp (herramientas propias)" },
-  { key: "elastic", label: "Elasticsearch", icon: Database, description: "Búsqueda híbrida SECOP en GCP" },
-  { key: "datosGov", label: "Datos.gov.co", icon: Globe, description: "13 fuentes oficiales en tiempo real" },
-  { key: "agentRuntime", label: "Agent Runtime (ADK)", icon: Bot, description: "Motor de agente en entorno de despliegue" },
-  { key: "investigation", label: "Motor de Investigación", icon: Server, description: "Scoring, trazabilidad y expedientes" },
+const fadeUp = {
+  hidden: { opacity: 0, y: 24 },
+  show: { opacity: 1, y: 0, transition: { duration: 0.45, ease: "easeOut" as const } },
+}
+
+const FEATURES = [
+  {
+    icon: Shield,
+    title: "Detecta riesgo",
+    description:
+      "Analiza SECOP I+II, Contraloría, Procuraduría y 10 fuentes más para calcular un score de riesgo 0-100",
+  },
+  {
+    icon: Bot,
+    title: "IA Explicable",
+    description:
+      "Gemini 2.5 Flash genera hallazgos narrativos con normativa colombiana aplicable (Ley 80/1993, Ley 1474/2011)",
+  },
+  {
+    icon: FileText,
+    title: "Expediente digital",
+    description:
+      "Genera PDFs institucionales listos para enviar a entes de control",
+  },
 ]
 
-function deriveServices(status: SystemStatus): NonNullable<SystemStatus["services"]> {
-  if (status.services) return status.services
+const USE_CASES = [
+  { icon: Building2, title: "Entidades nacionales", example: "ICBF, UNGRD, Ministerios" },
+  { icon: Landmark, title: "Gobernaciones", example: "Antioquia, Cundinamarca, Valle" },
+  { icon: MapPin, title: "Alcaldías", example: "Medellín, Bogotá, Cali" },
+  { icon: Scale, title: "Contratistas", example: "NIT, razón social, proveedores" },
+]
 
-  return {
-    gemini: status.gemini.connected ? "operational" : "partial",
-    mcp: status.mcp.status === "configured" ? "operational" : "partial",
-    elastic: status.elastic.configured ? "operational" : "partial",
-    datosGov: status.apis.datosGov === "ok" ? "operational" : "partial",
-    agentRuntime: status.adk.connected ? "operational" : "partial",
-    investigation: status.apis.search === "ok" ? "operational" : "operational",
-  }
-}
+const SOURCE_GROUPS = [
+  {
+    label: "Contratación",
+    color: "bg-primary/15 text-primary border-primary/30",
+    items: ["SECOP II", "SECOP I", "Procesos de Licitación", "Ejecución de Contratos"],
+  },
+  {
+    label: "Control",
+    color: "bg-destructive/15 text-destructive border-destructive/30",
+    items: ["CGR Fallos Fiscales", "Sanciones Contractuales", "Contadores Sancionados"],
+  },
+  {
+    label: "Disciplinario",
+    color: "bg-warning/15 text-warning border-warning/30",
+    items: ["Procuraduría"],
+  },
+  {
+    label: "Regalías",
+    color: "bg-success/15 text-success border-success/30",
+    items: ["SGR Regalías ×4 datasets"],
+  },
+]
 
-function StateBadge({ state }: { state: ServiceState }) {
-  const config = {
-    operational: { emoji: "🟢", label: "Operativo", className: "text-success" },
-    partial: { emoji: "🟡", label: "Parcial", className: "text-warning" },
-    unavailable: { emoji: "🔴", label: "No disponible", className: "text-destructive" },
-  }[state]
-
-  return (
-    <span className={cn("text-sm font-semibold flex items-center gap-1.5", config.className)}>
-      <span>{config.emoji}</span>
-      {config.label}
-    </span>
-  )
-}
+const TECH_BADGES = [
+  { icon: Sparkles, label: "Gemini 2.5 Flash" },
+  { icon: Bot, label: "ADK Agents" },
+  { icon: Plug, label: "MCP Protocol" },
+  { icon: Database, label: "Elasticsearch" },
+  { icon: Cloud, label: "Google Cloud" },
+]
 
 export default function ConfiguracionPage() {
-  const [status, setStatus] = useState<SystemStatus | null>(null)
-  const [loading, setLoading] = useState(true)
-
-  const loadStatus = () => {
-    setLoading(true)
-    fetch("/api/system/status")
-      .then((r) => r.json())
-      .then(setStatus)
-      .catch(console.error)
-      .finally(() => setLoading(false))
-  }
-
-  useEffect(() => {
-    loadStatus()
-  }, [])
-
-  const services = status ? deriveServices(status) : null
-
   return (
-    <AppShell title="Sistema IA" subtitle="Estado operativo de la plataforma NeurAudit">
-      <div className="space-y-6 max-w-3xl">
-        <div className="glass rounded-2xl p-6">
-          <div className="flex items-center justify-between mb-6">
-            <div>
-              <h2 className="text-lg font-semibold text-foreground">Estado del Sistema</h2>
-              <p className="text-sm text-muted-foreground mt-1">
-                Monitoreo en tiempo real · Google Cloud Rapid Agent Hackathon 2026
-              </p>
-            </div>
-            <button
-              onClick={loadStatus}
-              className="size-9 rounded-lg glass flex items-center justify-center text-muted-foreground hover:text-foreground"
-              aria-label="Actualizar estado"
-            >
-              <RefreshCw className={cn("size-4", loading && "animate-spin")} />
-            </button>
-          </div>
-
-          {loading && !status ? (
-            <div className="flex items-center gap-3 py-8">
-              <Loader2 className="size-6 text-primary animate-spin" />
-              <p className="text-sm text-muted-foreground">Verificando servicios…</p>
-            </div>
-          ) : services ? (
-            <div className="space-y-3">
-              {SERVICE_META.map((svc) => {
-                const state = services[svc.key]
-                const Icon = svc.icon
-                return (
-                  <div
-                    key={svc.key}
-                    className="flex items-center justify-between gap-4 p-4 rounded-xl bg-muted/30 border border-border"
-                  >
-                    <div className="flex items-start gap-3 min-w-0">
-                      <div className="size-9 rounded-lg bg-primary/10 flex items-center justify-center shrink-0">
-                        <Icon className="size-4 text-primary" />
-                      </div>
-                      <div className="min-w-0">
-                        <p className="font-medium text-foreground">{svc.label}</p>
-                        <p className="text-xs text-muted-foreground mt-0.5">{svc.description}</p>
-                        {svc.key === "agentRuntime" && state === "partial" && (
-                          <p className="text-xs text-muted-foreground mt-2 italic">
-                            Agent Runtime available in deployment environment
-                          </p>
-                        )}
-                        {svc.key === "gemini" && status?.gemini.model && (
-                          <p className="text-xs text-muted-foreground mt-1">Modelo: {status.gemini.model}</p>
-                        )}
-                        {svc.key === "elastic" && status?.elastic.index && (
-                          <p className="text-xs text-muted-foreground mt-1">
-                            Índice: {status.elastic.index} · Hybrid search activo
-                          </p>
-                        )}
-                      </div>
-                    </div>
-                    <StateBadge state={state} />
-                  </div>
-                )
-              })}
-            </div>
-          ) : (
-            <p className="text-sm text-muted-foreground">No se pudo cargar el estado del sistema.</p>
-          )}
-        </div>
-
-        <div className="glass rounded-2xl p-6 text-sm text-muted-foreground leading-relaxed">
-          <p>
-            NeurAudit AI integra <strong className="text-foreground">Gemini 2.5 Flash</strong>,{" "}
-            <strong className="text-foreground">Elastic MCP</strong>,{" "}
-            <strong className="text-foreground">ADK Agent</strong> y datos oficiales de Colombia.
-            Verificación: <code className="text-xs">/api/system/compliance</code>
-            La plataforma degrada con elegancia cuando un servicio no está disponible.
+    <AppShell title="NeurAudit AI" subtitle="Inteligencia Anticorrupción · Colombia">
+      <motion.div
+        variants={stagger}
+        initial="hidden"
+        animate="show"
+        className="max-w-4xl mx-auto space-y-12 pb-16"
+      >
+        {/* Hero */}
+        <motion.section variants={fadeUp} className="text-center space-y-4">
+          <h1 className="text-3xl md:text-4xl font-bold text-foreground">NeurAudit AI</h1>
+          <p className="text-muted-foreground text-lg">
+            Inteligencia Anticorrupción · Google Cloud Rapid Agent Hackathon 2026
           </p>
-        </div>
-      </div>
+          <motion.span
+            animate={{ opacity: [1, 0.6, 1] }}
+            transition={{ duration: 2, repeat: Infinity, ease: "easeInOut" }}
+            className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-sm font-medium bg-success/10 text-success border border-success/30"
+          >
+            <span className="size-2 rounded-full bg-success animate-pulse" />
+            Live · 13 fuentes en tiempo real
+          </motion.span>
+        </motion.section>
+
+        {/* Qué hace */}
+        <motion.section variants={fadeUp} className="space-y-6">
+          <h2 className="text-xl font-semibold text-foreground">¿Qué hace NeurAudit?</h2>
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+            {FEATURES.map((f) => (
+              <motion.div
+                key={f.title}
+                variants={fadeUp}
+                className="glass rounded-2xl p-6 space-y-4 hover:border-primary/30 transition-colors"
+              >
+                <div className="size-12 rounded-xl bg-primary/15 flex items-center justify-center">
+                  <f.icon className="size-6 text-primary" />
+                </div>
+                <h3 className="font-semibold text-foreground">{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.description}</p>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Puedes investigar */}
+        <motion.section variants={fadeUp} className="space-y-6">
+          <h2 className="text-xl font-semibold text-foreground">Puedes investigar</h2>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+            {USE_CASES.map((uc) => (
+              <motion.div
+                key={uc.title}
+                whileHover={{ scale: 1.02 }}
+                transition={{ type: "spring", stiffness: 400, damping: 25 }}
+                className="glass rounded-2xl p-5 border border-border hover:border-primary/50 transition-colors cursor-default"
+              >
+                <div className="flex items-start gap-4">
+                  <div className="size-10 rounded-lg bg-accent/15 flex items-center justify-center shrink-0">
+                    <uc.icon className="size-5 text-accent" />
+                  </div>
+                  <div>
+                    <h3 className="font-semibold text-foreground">{uc.title}</h3>
+                    <p className="text-sm text-muted-foreground mt-1">{uc.example}</p>
+                  </div>
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Fuentes */}
+        <motion.section variants={fadeUp} className="space-y-6">
+          <h2 className="text-xl font-semibold text-foreground">Fuentes de datos</h2>
+          <div className="glass rounded-2xl p-6 space-y-6">
+            {SOURCE_GROUPS.map((group, gi) => (
+              <motion.div
+                key={group.label}
+                initial={{ opacity: 0, x: -12 }}
+                animate={{ opacity: 1, x: 0 }}
+                transition={{ delay: gi * 0.08 }}
+                className="space-y-3"
+              >
+                <span
+                  className={cn(
+                    "inline-block px-3 py-1 rounded-full text-xs font-semibold border",
+                    group.color
+                  )}
+                >
+                  {group.label}
+                </span>
+                <div className="flex flex-wrap gap-2">
+                  {group.items.map((item) => (
+                    <span
+                      key={item}
+                      className="px-3 py-1.5 rounded-lg text-sm bg-muted/40 text-foreground border border-border"
+                    >
+                      {item}
+                    </span>
+                  ))}
+                </div>
+              </motion.div>
+            ))}
+          </div>
+        </motion.section>
+
+        {/* Footer tech */}
+        <motion.footer
+          variants={fadeUp}
+          className="flex flex-wrap items-center justify-center gap-3 pt-4"
+        >
+          {TECH_BADGES.map((badge) => (
+            <span
+              key={badge.label}
+              className="inline-flex items-center gap-2 px-4 py-2 rounded-full text-xs font-medium glass border border-border text-muted-foreground"
+            >
+              <badge.icon className="size-3.5 text-primary" />
+              {badge.label}
+            </span>
+          ))}
+        </motion.footer>
+      </motion.div>
     </AppShell>
   )
 }
