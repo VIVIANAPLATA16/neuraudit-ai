@@ -1,6 +1,8 @@
 # NeurAudit — API Reference (Hackathon)
 
-Base URL producción: `https://neuraudit.vercel.app`
+Base URL producción: `https://neuraudit-web-986541948066.us-central1.run.app`
+
+Legacy URL: `https://neuraudit.vercel.app`
 
 ---
 

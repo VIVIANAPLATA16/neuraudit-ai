@@ -4,7 +4,9 @@
 
 Built for the **[Google Cloud Rapid Agent Hackathon 2026](https://cloud.google.com/events/rapid-agent-hackathon)** — Elastic Track · Gemini · ADK · MCP · Agent Builder
 
-**Live demo:** https://neuraudit.vercel.app
+**Live demo:** https://neuraudit-web-986541948066.us-central1.run.app
+
+**Legacy URL:** https://neuraudit.vercel.app
 
 ---
 

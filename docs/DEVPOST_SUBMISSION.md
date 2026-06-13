@@ -38,7 +38,7 @@ NeurAudit automates end-to-end investigation:
 
 ### Demo 1 — Web investigation (2 min)
 
-1. Open https://neuraudit.vercel.app
+1. Open https://neuraudit-web-986541948066.us-central1.run.app
 2. Search **"ICBF"** or **"UNGRD"**
 3. Show: risk score, sources consulted, contracts, enriched findings
 4. Highlight **`elasticInsights`** in API response (Elastic Track)
@@ -53,7 +53,7 @@ NeurAudit automates end-to-end investigation:
 
 ### Demo 3 — MCP / Agent Builder (1 min)
 
-1. Call `POST https://neuraudit.vercel.app/api/mcp` with `tools/call`
+1. Call `POST https://neuraudit-web-986541948066.us-central1.run.app/api/mcp` with `tools/call`
 2. Or run local ADK dev-ui on `:8000`
 3. Agent invokes `investigar_entidad` → real government data
 
@@ -143,7 +143,8 @@ User → Next.js (Vercel / Cloud Run)
 
 | Resource | URL |
 |----------|-----|
-| **Live demo** | https://neuraudit.vercel.app |
+| **Live demo** | https://neuraudit-web-986541948066.us-central1.run.app |
+| **Legacy URL** | https://neuraudit.vercel.app |
 | **Repository** | https://github.com/VIVIANAPLATA16/neuraudit-ai |
 | **Architecture** | `docs/ARCHITECTURE.md` |
 | **Agent deployment** | `docs/AGENT_DEPLOYMENT.md` |

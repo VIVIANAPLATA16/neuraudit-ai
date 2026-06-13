@@ -3,7 +3,9 @@
 **NeurAudit AI · Google Cloud Rapid Agent Hackathon 2026 · Elastic Track**
 
 Last audit: 2026-06-03  
-Production: https://neuraudit.vercel.app
+Production: https://neuraudit-web-986541948066.us-central1.run.app
+
+Legacy URL: https://neuraudit.vercel.app
 
 Severity: **CRÍTICO** | **ALTO** | **MEDIO** | **BAJO**
 
@@ -70,7 +72,7 @@ Severity: **CRÍTICO** | **ALTO** | **MEDIO** | **BAJO**
 
 ## Judge 30-second test
 
-1. Open https://neuraudit.vercel.app
+1. Open https://neuraudit-web-986541948066.us-central1.run.app
 2. See: **Google Cloud Rapid Agent Hackathon 2026 · Elastic Track**
 3. See tech strip: **Gemini · Agent Builder MCP · Elasticsearch**
 4. Click **View Demo** (ICBF)

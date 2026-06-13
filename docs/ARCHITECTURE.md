@@ -121,7 +121,8 @@ generateAnalysis() / generateComparativeAnalysis()
 
 | Component | URL / command |
 |-----------|---------------|
-| Production UI | https://neuraudit.vercel.app |
+| Production UI | https://neuraudit-web-986541948066.us-central1.run.app |
+| Legacy URL | https://neuraudit.vercel.app |
 | GCP full stack | `./deploy-gcp.sh` → Cloud Run (Next.js + ADK Analyze) |
 | ADK Analyze | Docker local or Cloud Run — see `AGENT_DEPLOYMENT.md` |
 | ADK Dev UI | `adk web` → http://127.0.0.1:8000/dev-ui/ |
