@@ -1,85 +1,225 @@
-# 🛡️ NeurAudit AI
+# NeurAudit AI
 
-> **Anti-corruption intelligence agent for Colombian public procurement**
-> **Agente de inteligencia anti-corrupción para contratación pública colombiana**
+**Anti-corruption intelligence agent for Colombian public procurement.**
 
-[![Demo](https://img.shields.io/badge/demo-live-green)](https://neuraudit-web-986541948066.us-central1.run.app)
-[![datos.gov.co](https://img.shields.io/badge/datos-datos.gov.co-blue)](https://datos.gov.co)
-[![License](https://img.shields.io/badge/license-MIT-yellow)](LICENSE)
+Built for the **[Google Cloud Rapid Agent Hackathon 2026](https://cloud.google.com/events/rapid-agent-hackathon)** — Elastic Track · Gemini · ADK · MCP · Agent Builder
 
----
+**Live demo:** https://neuraudit-web-986541948066.us-central1.run.app
 
-## 🌐 Live Demo / Demo en vivo
-
-**👉 https://neuraudit-web-986541948066.us-central1.run.app**
+**Legacy URL:** https://neuraudit.vercel.app
 
 ---
-
-# 🇬🇧 ENGLISH
 
 ## What it is
 
-NeurAudit AI cross-references 13 official government datasets (SECOP, Comptroller General, Attorney General, royalty funds, sanctions) and delivers, in seconds:
+NeurAudit AI cross-references **13 official government datasets** (SECOP, Comptroller General, Attorney General, royalty funds, sanctions) and delivers, in seconds:
 
-- A 0–100 risk score with formal explainability
-- Per-source traceability (success / partial / error / timeout / empty)
-- Deep audit reports powered by Gemini 2.5 Flash
+- A **0–100 risk score** with formal explainability (`scoreExplainability`)
+- Per-source traceability (`success` / `partial` / `error` / `timeout` / `empty`)
+- Deep audit reports powered by **Gemini 2.5 Flash**
 - PDF case files and side-by-side entity comparison
-- MCP integration for Google Cloud Agent Builder
+- **MCP** integration for **Google Cloud Agent Builder**
 
-## Tech stack
+---
+
+## Unified technology stack
 
 | Layer | Technology | Role |
-|-------|-----------|------|
-| Frontend & BFF | Next.js 16, React 19, Tailwind CSS 4 | UI + serverless API routes |
-| Live government data | datos.gov.co (Socrata) | 13 datasets, paginated fetch with backoff |
-| Hybrid search | Elasticsearch on GCP | Semantic SECOP contract search |
-| Risk engine | TypeScript (risk-engine.ts) | 10-rule deterministic scoring |
-| Generative AI | Gemini 2.5 Flash | Deep audit reports |
-| AI orchestration | ADK → Gemini → derived fallback | Never leaves user without response |
-| Deployment | Google Cloud Run + Vercel | Scalable production |
+|-------|------------|------|
+| **Frontend & BFF** | **Next.js 16**, React 19, Tailwind CSS 4 | UI + serverless API routes (Vercel / Cloud Run) |
+| **Live government data** | datos.gov.co (Socrata) | 13 datasets, paginated fetch with backoff |
+| **Hybrid search** | **Elasticsearch on GCP** (`secop-contratos`) | Semantic SECOP contract search at runtime |
+| **Risk engine** | TypeScript (`risk-engine.ts`) | 10-rule scoring — unchanged, deterministic |
+| **Generative AI** | **Gemini 2.5 Flash** | Google AI Studio API (production) · Vertex AI–ready on GCP |
+| **AI orchestration** | `ADK → Gemini → derived fallback` | Never leaves the user without a response |
+| **ADK Analyze** | FastAPI (`analyze_service.py`) | Deep analysis microservice (Docker / Cloud Run) |
+| **Agent surfaces** | **Google Cloud Agent Builder (MCP)** | JSON-RPC at `/api/mcp` |
+| **ADK Dev UI** | `agent.py` (Google ADK) | Local `:8000` for hackathon demos |
+| **Persistence** | In-memory cache + browser storage | No SQL required for MVP |
 
-## Architecture
+```
+User query
+    │
+    ├─► datos.gov.co (13 sources) ──┐
+    └─► Elasticsearch GCP (hybrid) ─┤
+                                      ▼
+                              Risk engine + explainability
+                                      ▼
+                         ADK Analyze → Gemini 2.5 Flash → derived fallback
+                                      ▼
+                         UI · PDF · Compare · MCP · Agent Builder
+```
 
-    User query
-         │
-         ├─► datos.gov.co (13 sources) ──┐
-         └─► Elasticsearch GCP (hybrid) ─┤
-                                           ▼
-                                   Risk engine + explainability
-                                           ▼
-                          ADK Analyze → Gemini 2.5 Flash → fallback
-                                           ▼
-                          UI · PDF · Compare · MCP · Agent Builder
+Full architecture: [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md)
+
+---
+
+## How it works (60 seconds)
+
+1. User searches an entity (e.g. `ICBF`, `UNGRD`).
+2. `runInvestigation()` fetches **datos.gov.co** and queries **Elasticsearch** in parallel.
+3. The risk engine computes score, alerts, and enriched findings (including Elastic insights).
+4. Optional `POST /api/agent/analysis` runs the IA pipeline: **ADK Analyze → Gemini → derived fallback**.
+5. Results surface in the UI, PDF export, comparison views, or via **MCP** for external agents.
+
+---
 
 ## Local setup
 
-    git clone https://github.com/VIVIANAPLATA16/neuraudit-ai.git
-    cd neuraudit-ai
-    npm install
+### Prerequisites
 
-Create `.env.local`:
+- Node.js 20+
+- Python 3.11+ (for ADK Analyze)
+- Docker (optional, recommended)
+- `GEMINI_API_KEY` or `GOOGLE_API_KEY` ([Google AI Studio](https://aistudio.google.com/))
+- `ELASTIC_ENDPOINT` + `ELASTIC_API_KEY` (optional — graceful skip if missing)
 
-    GEMINI_API_KEY=your_google_ai_studio_key
-    ELASTIC_ENDPOINT=https://your-deployment.es.us-central1.gcp.cloud.es.io
-    ELASTIC_API_KEY=your_elastic_api_key
+### Clone & install
 
-Run:
+```bash
+git clone https://github.com/VIVIANAPLATA16/neuraudit-ai.git
+cd neuraudit-ai
+npm install
+```
 
-    npm run dev
+Create `.env.local` at the project root:
 
-Open http://localhost:3000
+```bash
+# Required for generative analysis
+GEMINI_API_KEY=your_google_ai_studio_key
+
+# Optional — Elasticsearch hybrid search (GCP cluster)
+ELASTIC_ENDPOINT=https://your-deployment.es.us-central1.gcp.cloud.es.io
+ELASTIC_API_KEY=your_elastic_api_key
+
+# Optional — ADK Analyze (defaults to localhost:8001)
+NEURAUDIT_ADK_ANALYZE_URL=http://127.0.0.1:8001/analyze
+```
+
+### Index SECOP into Elasticsearch (one-time)
+
+```bash
+node scripts/index-secop.mjs
+```
+
+### Option A — Fast development
+
+```bash
+# Terminal 1 — ADK Analyze (FastAPI)
+python3 -m uvicorn neuraudit_agent.analyze_service:app --host 127.0.0.1 --port 8001
+
+# Terminal 2 — Next.js
+npm run dev
+# → http://localhost:3000
+```
+
+### Option B — Docker Compose (recommended)
+
+```bash
+docker compose up --build
+# Next.js → http://localhost:3000
+# ADK Analyze → http://localhost:8001/health
+```
+
+### Option C — ADK Dev UI (hackathon agent demo)
+
+```bash
+adk web --port 8000
+# → http://127.0.0.1:8000/dev-ui/
+```
+
+### Verify
+
+```bash
+curl http://localhost:3000/api/system/status
+# Check: gemini.connected, elastic.configured, adk.connected
+```
+
+---
+
+## Enterprise deployment
+
+### Frontend — Vercel (current production)
+
+Connected to `main` on GitHub. Push to `main` → automatic deploy.
+
+```bash
+vercel deploy --prod   # manual deploy if needed
+```
+
+**Vercel environment variables:**
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `GEMINI_API_KEY` | Yes | Google AI Studio API key |
+| `ELASTIC_ENDPOINT` | Recommended | GCP Elasticsearch endpoint |
+| `ELASTIC_API_KEY` | Recommended | Elastic API key |
+| `NEURAUDIT_ADK_ANALYZE_URL` | If ADK in cloud | Cloud Run Analyze URL |
+
+### Full stack — Google Cloud Run
+
+Deploy **Next.js** and **ADK Analyze** to Cloud Run with one script:
+
+```bash
+export GCP_PROJECT_ID="your-gcp-project"
+export GCP_REGION="us-central1"
+export GEMINI_API_KEY="..."
+export ELASTIC_ENDPOINT="https://..."
+export ELASTIC_API_KEY="..."
+
+chmod +x deploy-gcp.sh
+./deploy-gcp.sh
+```
+
+The script will:
+
+1. Enable required GCP APIs (Run, Artifact Registry, Cloud Build)
+2. Build and push Docker images (`nextjs` + `adk-analyze`)
+3. Deploy **ADK Analyze** to Cloud Run (`:8001`, 300s timeout)
+4. Deploy **Next.js** to Cloud Run (`:8080`, 2Gi RAM, 300s timeout)
+5. Wire `NEURAUDIT_ADK_ANALYZE_URL` to the deployed Analyze service
+
+**Post-deploy:**
+
+```bash
+# Set public app URL for status checks
+gcloud run services update neuraudit-web \
+  --region=us-central1 \
+  --set-env-vars="NEXT_PUBLIC_APP_URL=https://your-service-url"
+```
+
+Detailed agent deployment: [`docs/AGENT_DEPLOYMENT.md`](docs/AGENT_DEPLOYMENT.md)
+
+---
+
+## Agent interfaces
+
+NeurAudit exposes **three agent surfaces**:
+
+| Surface | Entry point | Audience |
+|---------|-------------|----------|
+| **Web UI** | `/` | Auditors, journalists, citizens |
+| **MCP Server** | `POST /api/mcp` | Google Cloud Agent Builder |
+| **ADK Analyze** | `analyze_service.py` | Next.js IA pipeline (internal) |
+
+**IA pipeline (unchanged):** `ADK Analyze → Gemini 2.5 Flash → derived institutional fallback`
+
+---
 
 ## Core API
 
 | Endpoint | Method | Description |
 |----------|--------|-------------|
-| /api/agent/search?q= | GET | Full investigation (13 sources + Elastic) |
-| /api/agent/analysis | POST | Deep AI audit report |
-| /api/agent/compare?a=&b= | GET | Compare two entities |
-| /api/expediente/pdf?q= | GET | PDF case file |
-| /api/system/status | GET | System diagnostics |
-| /api/mcp | POST | MCP JSON-RPC (Agent Builder) |
+| `/api/agent/search?q=` | GET | Full investigation (13 sources + Elastic) |
+| `/api/agent/analysis` | POST | Deep IA audit report |
+| `/api/agent/compare?a=&b=` | GET | Compare two entities |
+| `/api/expediente/pdf?q=` | GET | PDF case file |
+| `/api/system/status` | GET | System diagnostics |
+| `/api/mcp` | POST | MCP JSON-RPC (Agent Builder) |
+
+Full reference: [`docs/API.md`](docs/API.md)
+
+---
 
 ## Use cases
 
@@ -88,139 +228,40 @@ Open http://localhost:3000
 | Auditor / Comptroller | Prioritize entities by explainable risk score |
 | Journalist | Cross-source procurement investigation in minutes |
 | Civil society | Transparency on state entities and contractors |
+| Hackathon judges | Live demo: MCP + Gemini + real government data + Elastic hybrid search |
 
 ---
 
-# 🇨🇴 ESPAÑOL
+## Documentation
 
-## ¿Qué es NeurAudit AI?
-
-NeurAudit AI es un agente de inteligencia artificial que cruza 13 fuentes oficiales de datos abiertos del gobierno colombiano para detectar riesgos de corrupción en contratos públicos en segundos.
-
-El sistema entrega:
-- Puntaje de riesgo 0–100 con explicabilidad formal
-- Trazabilidad por fuente (éxito / parcial / error / timeout / vacío)
-- Informes de auditoría profunda con Gemini 2.5 Flash
-- Expedientes en PDF y comparación de entidades
-- Integración con agentes de IA vía MCP
-
-## 🎯 Problema que resuelve
-
-Colombia pierde aproximadamente **$50 billones de pesos anuales** en corrupción en contratación pública. Las herramientas actuales son:
-
-- ❌ Reactivas — detectan el problema después del daño
-- ❌ Fragmentadas — no cruzan fuentes de datos
-- ❌ Lentas — auditorías que toman semanas
-- ❌ Inaccesibles — solo para grandes entidades
-
-**NeurAudit AI resuelve esto** cruzando 13 fuentes de datos abiertos en segundos con IA generativa.
-
-## Stack tecnológico
-
-| Capa | Tecnología | Rol |
-|------|-----------|-----|
-| Frontend | Next.js 16, React 19, Tailwind CSS 4 | UI + API serverless |
-| Datos en vivo | datos.gov.co (Socrata) | 13 datasets en tiempo real |
-| Búsqueda híbrida | Elasticsearch en GCP | Búsqueda semántica SECOP |
-| Motor de riesgo | TypeScript (risk-engine.ts) | 10 reglas determinísticas |
-| IA Generativa | Gemini 2.5 Flash | Informes de auditoría profunda |
-| Orquestación IA | ADK → Gemini → fallback | Sin respuesta vacía al usuario |
-| Despliegue | Google Cloud Run + Vercel | Producción escalable |
-
-## Arquitectura
-
-    Consulta del usuario
-         │
-         ├─► datos.gov.co (13 fuentes) ──┐
-         └─► Elasticsearch GCP (híbrido) ─┤
-                                           ▼
-                                Motor de riesgo + explicabilidad
-                                           ▼
-                              ADK Analyze → Gemini 2.5 Flash → fallback
-                                           ▼
-                          UI · PDF · Comparar · MCP · Agent Builder
-
-## Instalación local
-
-    git clone https://github.com/VIVIANAPLATA16/neuraudit-ai.git
-    cd neuraudit-ai
-    npm install
-
-Crea `.env.local`:
-
-    GEMINI_API_KEY=tu_api_key_de_google_ai_studio
-
-Ejecutar:
-
-    npm run dev
-
-Abre http://localhost:3000
-
-## API principal
-
-| Endpoint | Método | Descripción |
-|----------|--------|-------------|
-| /api/agent/search?q= | GET | Investigación completa (13 fuentes + Elastic) |
-| /api/agent/analysis | POST | Informe de auditoría profunda con IA |
-| /api/agent/compare?a=&b= | GET | Comparar dos entidades |
-| /api/expediente/pdf?q= | GET | Expediente en PDF |
-| /api/system/status | GET | Diagnóstico del sistema |
-| /api/mcp | POST | MCP JSON-RPC (Agent Builder) |
-
-## Casos de uso
-
-| Usuario | Caso de uso |
-|---------|-------------|
-| Auditor / Contraloría | Priorizar entidades por puntaje de riesgo explicable |
-| Periodista | Investigación de contratación en minutos |
-| Ciudadano | Transparencia sobre entidades públicas |
-| Entidad pública | Autoauditoría preventiva |
+| Document | Contents |
+|----------|----------|
+| [`docs/DEVPOST_SUBMISSION.md`](docs/DEVPOST_SUBMISSION.md) | Devpost copy + demo script |
+| [`docs/ARCHITECTURE.md`](docs/ARCHITECTURE.md) | One-minute architecture |
+| [`docs/AGENT_DEPLOYMENT.md`](docs/AGENT_DEPLOYMENT.md) | Cloud Run agent deployment |
+| [`docs/API.md`](docs/API.md) | Active vs legacy endpoints |
+| [`docs/DEPLOYMENT_AUDIT.md`](docs/DEPLOYMENT_AUDIT.md) | Vercel production audit |
 
 ---
 
-## 🇨🇴 Concurso Datos al Ecosistema 2026: IA para Colombia
+## Hackathon alignment
 
-Proyecto presentado al **Concurso Datos al Ecosistema 2026: IA para Colombia**, organizado por el Ministerio TIC y el portal [datos.gov.co](https://www.datos.gov.co).
-
-**Categoría:** Gobernanza y transparencia
-**Nivel:** Avanzado
-**Reto:** Detección de anomalías en contratación pública mediante IA
-
-### Datasets de datos.gov.co utilizados
-
-| Dataset | Uso en NeurAudit AI |
-|---------|-------------------|
-| SECOP II — Contratos públicos | Fuente principal de contratos y procesos |
-| SECOP II — Procesos de contratación | Análisis de irregularidades en licitaciones |
-| Contraloría General — Hallazgos fiscales | Detección de sanciones fiscales |
-| Procuraduría — Sanciones disciplinarias | Verificación de contratistas sancionados |
-| Regalías — SMSCE | Monitoreo de fondos de regalías |
-| SECOP I — Contratos legacy | Historial contractual de entidades |
-| Inhabilidades e incompatibilidades | Lista de inhabilitados para contratar |
-
-### Criterios del concurso
-
-| Criterio | Cómo NeurAudit AI lo cumple |
-|----------|----------------------------|
-| Innovación y creatividad | Motor de riesgo con 10 reglas + IA generativa única en Colombia |
-| Uso de datos abiertos | 13 datasets de datos.gov.co en tiempo real |
-| Análisis y rigor técnico | Puntuación determinística + explicabilidad formal por fuente |
-| Uso de IA | Gemini 2.5 Flash + ADK + detección de anomalías |
-| Impacto y escalabilidad | Aplicable a todas las entidades públicas colombianas |
-| Diseño y usabilidad | UI intuitiva, PDF exportable, comparación de entidades |
-
-### Impacto esperado
-- Reducción del tiempo de auditoría de semanas a segundos
-- Acceso ciudadano a inteligencia anti-corrupción basada en datos abiertos
-- Escalable a todas las entidades públicas colombianas
-- Potencial de adopción por Contraloría General y Procuraduría
+| Criterion | How NeurAudit delivers |
+|-----------|------------------------|
+| **Google Cloud Rapid Agent Hackathon 2026** | First-class submission: Gemini, ADK, Agent Builder MCP |
+| **Elastic Track** | Runtime Elasticsearch on GCP for hybrid SECOP search |
+| **Real data** | 100% public Colombian government APIs — no mocks |
+| **Agent Builder** | MCP tools: `investigar_entidad`, `comparar_entidades` |
+| **Resilience** | Graceful degradation at every layer (Elastic, ADK, Gemini) |
 
 ---
 
-## 📄 Licencia / License
+## License
 
-MIT © 2026 Viviana Plata
+**MIT License** — Copyright (c) 2026 VIVIANAPLATA16
 
----
+See the full license text in [`LICENSE`](LICENSE).
 
-*Concurso Datos al Ecosistema 2026: IA para Colombia — MinTIC · datos.gov.co*
+```
+MIT License — free to use, modify, and distribute with attribution.
+```
